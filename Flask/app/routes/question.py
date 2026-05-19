@@ -22,14 +22,18 @@ def query_question():
     return jsonify({"code": 200, "msg": "题目查询成功！", "data": result_list})
 
 
-@question_bp.route("/add_question")
+@question_bp.route("/add_question", methods=["POST"])
 def add_question():
+    data = request.json
+    question_txte = data.get("question")
+    answer_tesxt = data.get("answer")
+
     new_question = QuestionBank(
-        question="请说明TCP和UDP的区别",
-        answer="TCP面向连接且可靠；UDP无连接，不保证可靠交付。",
+        question=question_txte,
+        answer=answer_tesxt,
         is_deleted=0,
         create_time=datetime.now(),
     )
     db.session.add(new_question)
     db.session.commit()
-    return "新增成功！"
+    return jsonify({"code": 200, "msg": "新增题目成功！", "data": None})
