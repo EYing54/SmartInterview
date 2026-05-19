@@ -23,9 +23,15 @@ def add_question():
     return jsonify({"code": 200, "msg": "新增题目成功！", "data": None})
 
 
-@question_bp.route("/query_question")  # 查询题目
+@question_bp.route("/query_question", methods=["POST"])  # 查询题目
 def query_question():
-    questions = QuestionBank.query.all()  # 查询数据库中的所有题目
+    data = request.json or {}
+    page = data.get("page", 1)
+    size = data.get("size", 20)
+    pagination = QuestionBank.query.filter_by(is_deleted=0).paginate(
+        page=page, per_page=size, error_out=False
+    )
+    questions = pagination.items  # 查询数据库中的所有题目
     result_list = []
     for i in questions:
         i_dict = {
@@ -37,7 +43,11 @@ def query_question():
         }
         result_list.append(i_dict)  # 将循环中的每一次查到题目的添加到列表中
     return jsonify(
-        {"code": 200, "msg": "题目查询成功！", "data": result_list}
+        {
+            "code": 200,
+            "msg": "题目查询成功！",
+            "data": {"total": pagination.total, "list": result_list},
+        }
     )  # 返回json数据至前端
 
 
