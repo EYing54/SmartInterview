@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from app.models import User  # 从models中导入user表
 
 auth_bp = Blueprint("auth", __name__)
@@ -6,8 +6,7 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    # 在浏览器输入网址敲回车时（GET请求）
-    # 极其简陋的 HTML 登录页面用于测试
+    # HTML 登录页面用于测试
     if request.method == "GET":
         return """
             <div style="margin: 50px;">
@@ -31,10 +30,24 @@ def login():
 
         # 身份核验
         if user is None:
-            return "❌ 登录拦截：该账号不存在！"
+            return jsonify(
+                {"code": 404, "msg": "❌ 登录拦截：该账号不存在！", "data": None}
+            )
 
         elif user.password != in_password:
-            return "❌ 登录拦截：密码错误，请重新输入！"
+            return jsonify(
+                {
+                    "code": 400,
+                    "msg": "❌ 登录拦截：密码错误，请重新输入！",
+                    "data": None,
+                }
+            )
 
         else:
-            return f"✅ 登录成功！欢迎回来，{user.real_name}。系统识别您的权限角色为：{user.role}。"
+            return jsonify(
+                {
+                    "code": 200,
+                    "msg": f"✅ 登录成功！欢迎回来，{user.real_name}。系统识别您的权限角色为：{user.role}。",
+                    "data": None,
+                }
+            )

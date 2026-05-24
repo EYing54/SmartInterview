@@ -10,11 +10,11 @@ question_bp = Blueprint("question", __name__)
 def add_question():
     data = request.json  # 获取前端发来的json数据
     question_txte = data.get("question")
-    answer_tesxt = data.get("answer")
+    answer_text = data.get("answer")
 
     new_question = QuestionBank(
         question=question_txte,
-        answer=answer_tesxt,
+        answer=answer_text,
         is_deleted=0,
         create_time=datetime.now(),
     )  # 写入数据库中相应的属性的值

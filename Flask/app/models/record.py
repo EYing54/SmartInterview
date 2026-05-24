@@ -9,7 +9,7 @@ class InterviewRecord(db.Model):
     teacher_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))
     question_record = db.Column(db.JSON, nullable=False)
     create_time = db.Column(db.DateTime, nullable=False)
-    dimension_grade = db.Column(db.Numeric(5, 2))
+    dimension_grade = db.Column(db.JSON)
     video_path = db.Column(db.String(255))
     audio_path = db.Column(db.String(255))
     analysis_text = db.Column(db.Text)
