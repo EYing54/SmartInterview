@@ -2,6 +2,7 @@ from flask import Flask
 from extensions import db
 from app.routes.auth import auth_bp
 from app.routes.question import question_bp
+from app.routes.interview import interview_bp
 
 
 def create_app():
@@ -11,5 +12,6 @@ def create_app():
     db.init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(question_bp)
+    app.register_blueprint(interview_bp)
 
     return app

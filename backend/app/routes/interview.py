@@ -1,7 +1,7 @@
 from datetime import datetime
 import random
 from flask import Blueprint, jsonify, request
-from Flask.app.models.user import User
+from app.models.user import User
 from app.models.record import InterviewRecord
 from app.models.question import QuestionBank
 from extensions import db
@@ -57,6 +57,20 @@ def create_interview():
         {
             "code": 200,
             "msg": "面试记录已创建！",
-            "data": {"interview_id": new_interview_record.interview_id},
+            "data": {
+                "interview_id": new_interview_record.interview_id,
+                "questions": vaild_questions,
+            },
         }  # 向前端返回面试记录的id
     )
+
+
+@interview_bp.route("/upload_answer", methods=["POST"])
+def upload_answer():
+    vaild_interview_id = request.form.get("interview_id")
+    vaild_question_id = request.form.get("question_id")
+    vaild_audio = request.files.get("audio")
+    vaild_video = request.files.get("video")
+    target_record = InterviewRecord.query.filter_by(
+        interview_id=vaild_interview_id
+    ).first()
