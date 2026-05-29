@@ -1,9 +1,11 @@
+import os
 from datetime import datetime
 import random
 from flask import Blueprint, jsonify, request
 from app.models.user import User
 from app.models.record import InterviewRecord
 from app.models.question import QuestionBank
+from sqlalchemy.orm.attributes import flag_modified
 from extensions import db
 
 interview_bp = Blueprint("interview", __name__)
@@ -67,10 +69,45 @@ def create_interview():
 
 @interview_bp.route("/upload_answer", methods=["POST"])
 def upload_answer():
-    vaild_interview_id = request.form.get("interview_id")
-    vaild_question_id = request.form.get("question_id")
-    vaild_audio = request.files.get("audio")
-    vaild_video = request.files.get("video")
+    vaild_interview_id = request.form.get("interview_id")  # 从前端获取有效的面试id
+    vaild_question_id = request.form.get("question_id")  # 从前端获取有效的题目id
+    vaild_audio = request.files.get("audio")  # 从前端获取有效的音频文件
+    vaild_video = request.files.get("video")  # 从前端获取有效的视频文件
+
+    time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    audio_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.mp3"
+    video_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.mp4"
+    audio_save_dir = os.path.join(
+        "app", "static", f"interview_{vaild_interview_id}", "audio"
+    )
+    video_save_dir = os.path.join(
+        "app", "static", f"interview_{vaild_interview_id}", "video"
+    )
+    os.makedirs(audio_save_dir, exist_ok=True)
+    os.makedirs(video_save_dir, exist_ok=True)
+    audio_save_path = os.path.join(audio_save_dir, audio_filename)
+    video_save_path = os.path.join(video_save_dir, video_filename)
+    if vaild_audio:
+        vaild_audio.save(audio_save_path)  # 如果存在音频文件则进行储存
+    if vaild_video:
+        vaild_video.save(video_save_path)  # 如果存在视频文件则进行储存
     target_record = InterviewRecord.query.filter_by(
         interview_id=vaild_interview_id
     ).first()
+    question_list = (
+        target_record.question_record
+    )  # 开始向数据库中存题目对应的音视频路径
+    for q in question_list:
+        if str(q.get("question_id")) == str(vaild_question_id):
+            if vaild_audio:
+                q["audio_path"] = (
+                    f"/static/interview_{vaild_interview_id}/audio/{audio_filename}"
+                )
+            if vaild_video:
+                q["video_path"] = (
+                    f"/static/interview_{vaild_interview_id}/video/{video_filename}"
+                )
+            break
+    flag_modified(target_record, "question_record")
+    db.session.commit()
+    return jsonify({"code": 200, "msg": "回答上传成功！", "data": None})
