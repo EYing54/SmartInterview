@@ -19,10 +19,10 @@ def create_interview():
     student_id_text = data.get("student_id")
     target_student_id = User.query.filter_by(user_id=student_id_text).first()
     if not target_student_id:
-        return jsonify({"code": 404, "msg": "用户不存在", "data": None})
+        return jsonify({"code": 404, "msg": "用户不存在", "data": None}), 404
     post_text = data.get("post")
     if not post_text:
-        return jsonify({"code": 404, "msg": "未选择岗位", "data": None})
+        return jsonify({"code": 400, "msg": "未选择岗位", "data": None}), 400
     target_ids = (
         QuestionBank.query.with_entities(QuestionBank.question_id)
         .filter_by(is_deleted=0)
@@ -57,7 +57,7 @@ def create_interview():
     db.session.commit()
     return jsonify(
         {
-            "code": 200,
+            "code": 201,
             "msg": "面试记录已创建！",
             "data": {
                 "interview_id": new_interview_record.interview_id,
@@ -83,6 +83,7 @@ def upload_answer():
     video_save_dir = os.path.join(
         "app", "static", f"interview_{vaild_interview_id}", "video"
     )
+    # 创建文件夹
     os.makedirs(audio_save_dir, exist_ok=True)
     os.makedirs(video_save_dir, exist_ok=True)
     audio_save_path = os.path.join(audio_save_dir, audio_filename)
@@ -111,3 +112,6 @@ def upload_answer():
     flag_modified(target_record, "question_record")
     db.session.commit()
     return jsonify({"code": 200, "msg": "回答上传成功！", "data": None})
+
+
+"""下一步：@interview_bp.route("/finish_answer",method = ["POST"])"""

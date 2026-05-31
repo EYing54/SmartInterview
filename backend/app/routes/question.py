@@ -56,7 +56,7 @@ def delete_question():
     data = request.json
     target_id = data.get("question_id")  # 获取前端想要查询的题目id
     if not target_id:  # id判空
-        return jsonify({"code": 404, "msg": "请求失败，缺少题目id", "data": None})
+        return jsonify({"code": 400, "msg": "请求失败，缺少题目id", "data": None}), 400
     # id数据类型判断
     if not isinstance(target_id, int):
         return jsonify(
@@ -64,7 +64,7 @@ def delete_question():
         )
     target_question = QuestionBank.query.filter_by(question_id=target_id).first()
     if not target_question:  # 题目判空
-        return jsonify({"code": 404, "msg": "题目不存在", "data": None})
+        return jsonify({"code": 404, "msg": "题目不存在", "data": None}), 404
     target_question.is_deleted = 1  # 修改逻辑删除值
     db.session.commit()  # 提交到数据库
     return jsonify({"code": 200, "msg": "删除成功", "data": None})
@@ -75,15 +75,17 @@ def updata_question():
     data = request.json
     target_id = data.get("question_id")  # 获取前端想要查询的题目id
     if not target_id:  # id判空
-        return jsonify({"code": 404, "msg": "请求失败，缺少题目id", "data": None})
+        return jsonify({"code": 400, "msg": "请求失败，缺少题目id", "data": None}), 400
     # id数据类型判断
     if not isinstance(target_id, int):
-        return jsonify({"code": 400, "msg": "参数类型错误，ID必须是整数", "data": None})
+        return jsonify(
+            {"code": 400, "msg": "参数类型错误，ID必须是整数", "data": None}
+        ), 400
     target_question = QuestionBank.query.filter_by(question_id=target_id).first()
     if target_question.is_deleted == 1:  # 判断题目是否已被逻辑删除
-        return {"code": 400, "msg": "该题目已作废", "data": None}
+        return jsonify({"code": 404, "msg": "题目不存在", "data": None}), 404
     if not target_question:  # 题目判空
-        return jsonify({"code": 404, "msg": "题目不存在", "data": None})
+        return jsonify({"code": 404, "msg": "题目不存在", "data": None}), 404
     target_question.question = data.get("question")
     target_question.answer = data.get("answer")
     db.session.commit()
