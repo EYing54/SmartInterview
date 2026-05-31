@@ -2,11 +2,13 @@ from flask import Blueprint, request, jsonify  # noqa: F401
 from app.models.question import QuestionBank
 from extensions import db
 from datetime import datetime
+from app.utils.auth import role_required
 
 question_bp = Blueprint("question", __name__)
 
 
 @question_bp.route("/add_question", methods=["POST"])  # 添加题目
+@role_required(2)
 def add_question():
     data = request.json  # 获取前端发来的json数据
     question_txte = data.get("question")
@@ -24,6 +26,7 @@ def add_question():
 
 
 @question_bp.route("/query_question", methods=["POST"])  # 查询题目
+@role_required(2)
 def query_question():
     data = request.json or {}
     page = data.get("page", 1)

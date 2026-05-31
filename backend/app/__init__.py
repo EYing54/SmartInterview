@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from extensions import db
 from app.routes.auth import auth_bp
 from app.routes.question import question_bp
@@ -7,6 +8,7 @@ from app.routes.interview import interview_bp
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
     app.config.from_object("config")
 
     db.init_app(app)

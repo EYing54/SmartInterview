@@ -1,23 +1,23 @@
 import os
 from datetime import datetime
 import random
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 from app.models.user import User
 from app.models.record import InterviewRecord
 from app.models.question import QuestionBank
 from sqlalchemy.orm.attributes import flag_modified
 from extensions import db
+from app.utils.auth import role_required
 
 interview_bp = Blueprint("interview", __name__)
 
 
-@interview_bp.route(
-    "/create_interview", methods=["GET", "POST"]
-)  # 点击“开始面试”时调用该路由
+@interview_bp.route("/create_interview", methods=["POST"])  # 点击“开始面试”时调用该路由
+@role_required(0)
 def create_interview():
     data = request.json
-    student_id_text = data.get("student_id")
-    target_student_id = User.query.filter_by(user_id=student_id_text).first()
+    user_id_text = g.current_user_id
+    target_student_id = User.query.filter_by(user_id=user_id_text).first()
     if not target_student_id:
         return jsonify({"code": 404, "msg": "用户不存在", "data": None}), 404
     post_text = data.get("post")
@@ -47,7 +47,7 @@ def create_interview():
             }  # 有效题目包含题目id和题目本身
         )
     new_interview_record = InterviewRecord(
-        student_id=student_id_text,
+        student_id=user_id_text,
         post=post_text,
         create_time=datetime.now(),
         question_record=vaild_questions,
@@ -68,6 +68,7 @@ def create_interview():
 
 
 @interview_bp.route("/upload_answer", methods=["POST"])
+@role_required(0)
 def upload_answer():
     vaild_interview_id = request.form.get("interview_id")  # 从前端获取有效的面试id
     vaild_question_id = request.form.get("question_id")  # 从前端获取有效的题目id
