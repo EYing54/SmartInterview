@@ -1,9 +1,22 @@
 <template>
-  <div>
-    <input type="text" v-model="username" />
-    <input type="password" v-model="password" />
-    <button @click="handleLogin">登录</button>
-  </div>
+  <el-card style="width: 400px; margin: 150px auto">
+    <el-input
+      type="text"
+      placeholder="请输入账号"
+      style="margin-bottom: 20px"
+      v-model="username"
+    />
+    <el-input
+      type="password"
+      placeholder="请输入密码"
+      show-password
+      style="margin-bottom: 20px"
+      v-model="password"
+    />
+    <el-button type="primary" style="width: 100%" @click="handleLogin"
+      >登录</el-button
+    >
+  </el-card>
 </template>
 
 <script setup>

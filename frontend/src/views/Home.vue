@@ -1,17 +1,20 @@
 <template>
-  <div>
-    <h1>欢迎来到主页</h1>
-    <button @click="queryQuestions">查询题目</button>
-    <ul>
-      <li
-        v-for="q in questionList"
-        :key="q.question_id"
-        style="margin-bottom: 20px"
-      >
-        <strong>题目：</strong> {{ q.question }} <br />
-        <strong>答案：</strong> {{ q.answer }}
-      </li>
-    </ul>
+  <div style="padding: 20px">
+    <h2>智能面试系统 - 题库大厅</h2>
+
+    <el-button
+      type="primary"
+      @click="queryQuestions"
+      style="margin-bottom: 20px"
+    >
+      查询题目
+    </el-button>
+
+    <el-table :data="questionList" border style="width: 100%">
+      <el-table-column prop="question_id" label="ID" width="80" />
+      <el-table-column prop="question" label="面试题目" />
+      <el-table-column prop="answer" label="参考答案" />
+    </el-table>
   </div>
 </template>
 
