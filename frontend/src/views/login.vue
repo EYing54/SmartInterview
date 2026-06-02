@@ -8,7 +8,7 @@
 
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
+import { loginAPI } from "../api/user";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -18,10 +18,7 @@ const handleLogin = async () => {
   console.log(username.value);
   console.log(password.value);
   try {
-    const res = await axios.post("http://127.0.0.1:5000/login", {
-      username: username.value,
-      password: password.value,
-    });
+    const res = await loginAPI(username.value, password.value);
     console.log("post成功，返回的数据为：", res.data);
     localStorage.setItem("token", res.data.data.token);
     router.push("/home");
