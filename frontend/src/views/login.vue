@@ -9,7 +9,9 @@
 <script setup>
 import { ref } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const username = ref("");
 const password = ref("");
 const handleLogin = async () => {
@@ -21,6 +23,8 @@ const handleLogin = async () => {
       password: password.value,
     });
     console.log("post成功，返回的数据为：", res.data);
+    localStorage.setItem("token", res.data.data.token);
+    router.push("/home");
   } catch (error) {
     console.log("捕获到错误：", error);
   }

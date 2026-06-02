@@ -1,7 +1,5 @@
-<script setup lang="ts">
-import Login from "./views/login.vue";
-</script>
-
 <template>
-  <Login />
+  <router-view></router-view>
 </template>
+
+<script setup></script>
