@@ -15,13 +15,12 @@ interview_bp = Blueprint("interview", __name__)
 @interview_bp.route("/create_interview", methods=["POST"])  # 点击“开始面试”时调用该路由
 @role_required(0)
 def create_interview():
-    data = request.json
     user_id_text = g.current_user_id
-    target_student_id = User.query.filter_by(user_id=user_id_text).first()
-    if not target_student_id:
+    current_user = User.query.filter_by(user_id=user_id_text).first()
+    if not current_user:
         return jsonify({"code": 404, "msg": "用户不存在", "data": None}), 404
-    post_text = data.get("post")
-    if not post_text:
+    user_post = current_user.post
+    if not user_post:
         return jsonify({"code": 400, "msg": "未选择岗位", "data": None}), 400
     target_ids = (
         QuestionBank.query.with_entities(QuestionBank.question_id)
@@ -48,7 +47,7 @@ def create_interview():
         )
     new_interview_record = InterviewRecord(
         student_id=user_id_text,
-        post=post_text,
+        post=user_post,
         create_time=datetime.now(),
         question_record=vaild_questions,
         status=0,
@@ -115,4 +114,67 @@ def upload_answer():
     return jsonify({"code": 200, "msg": "回答上传成功！", "data": None})
 
 
-"""下一步：@interview_bp.route("/finish_answer",method = ["POST"])"""
+@interview_bp.route("/finish_interview", methods=["POST"])
+@role_required(0)
+def finish_answer():
+    data = request.json
+    target_interview_id = data.get("interview_id")
+    target_interview = InterviewRecord.query.filter_by(
+        interview_id=target_interview_id
+    ).first()
+    if not target_interview:
+        return jsonify({"code": 404, "msg": "id不存在！", "data": None})
+    target_interview.status = 1
+    target_interview.dimension_grade = {
+        "专业技能": 85,
+        "沟通表达": 90,
+        "逻辑思维": 80,
+        "综合分数": 88,
+    }  # 假数据
+    target_interview.analysis_text = (
+        "表现不错，但在一些基础概念的解释上还需巩固。"  # 假数据
+    )
+    db.session.commit()
+    return jsonify({"code": 200, "msg": "面试已结束", "data": None})
+
+
+@interview_bp.route("/get_interview_history", methods=["GET"])
+@role_required(0)
+def get_interview_history():
+    current_student_id = g.current_user_id
+    records = InterviewRecord.query.filter_by(student_id=current_student_id).all()
+    records_list = []
+    for i in records:
+        single_record_dict = {
+            "interview_id": i.interview_id,
+            "post": i.post,
+            "status": i.status,
+            "create_time": i.create_time.strftime("%Y-%m-%d %H:%M")
+            if i.create_time
+            else "",
+        }
+        records_list.append(single_record_dict)
+    return jsonify({"code": 200, "msg": "历史记录获取成功！", "data": records_list})
+
+
+@interview_bp.route("/get_interview_detail", methods=["GET"])
+@role_required(0)
+def get_interview_detail():
+    target_id = request.args.get("interview_id")
+    current_student_id = g.current_user_id
+    target_interview_detail = InterviewRecord.query.filter_by(
+        student_id=current_student_id, interview_id=target_id
+    ).first()
+    if not target_interview_detail:
+        return jsonify({"code": 404, "msg": "id不存在！", "data": None})
+    detail = {
+        "interview_id": target_interview_detail.interview_id,
+        "dimension_grade": target_interview_detail.dimension_grade,
+        "analysis_text": target_interview_detail.analysis_text,
+        "teacher_comment": target_interview_detail.teacher_comment,
+        "comment_time": target_interview_detail.comment_time.strftime("%Y-%m-%d %H:%M")
+        if target_interview_detail.comment_time
+        else "",
+        "post": target_interview_detail.post,
+    }
+    return jsonify({"code": 200, "msg": "成功获取面试详情！", "data": detail})

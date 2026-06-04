@@ -14,6 +14,7 @@ class User(db.Model):
     create_time = db.Column(db.DateTime, nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey("class_management.class_id"))
     ROLE_MAP = {0: "学生", 1: "教师", 2: "管理员"}
+    post = db.Column(db.String(30))
 
     @property
     def role_name(self) -> str:

@@ -33,8 +33,15 @@ const handleLogin = async () => {
   try {
     const res = await loginAPI(username.value, password.value);
     console.log("post成功，返回的数据为：", res.data);
-    localStorage.setItem("token", res.data.data.token);
-    router.push("/home");
+    localStorage.setItem("token", res.data.data.token); //从后端获取token并储存
+    localStorage.setItem("role", res.data.data.role); //从后端获取角色（role）并储存
+    if (res.data.data.role == 0) {
+      router.push("/student");
+    } else if (res.data.data.role == 1) {
+      router.push("/teacher");
+    } else if (res.data.data.role == 2) {
+      router.push("/admin");
+    } //基于角色的登录条状
   } catch (error) {
     console.log("捕获到错误：", error);
   }

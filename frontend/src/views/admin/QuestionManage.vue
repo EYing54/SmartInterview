@@ -20,7 +20,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { getQuestionList } from "../api/question";
+import { getQuestionList } from "../../api/question";
 
 const questionList = ref([]);
 const queryQuestions = async () => {

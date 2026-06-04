@@ -58,6 +58,7 @@ def login():
             "msg": f"✅ 登录成功！欢迎回来，{user.nickname}。系统识别您的权限角色为：{user.role_name}。",
             "data": {
                 "token": token,
+                "role": user.role,
             },
         }
     )
