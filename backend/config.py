@@ -11,3 +11,6 @@ db_na = os.getenv("DB_NAME")
 
 # 最终的连接
 SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{db_user}:{db_pwd}@127.0.0.1:3306/{db_na}"
+
+# 从环境变量读取音视频存储路径
+INTERVIEW_MEDIA_DIR = os.environ.get("INTERVIEW_MEDIA_DIR")

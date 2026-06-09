@@ -50,7 +50,23 @@ import { ElMessage } from "element-plus";
 import { createInterview } from "../../api/interview";
 
 const router = useRouter();
+
 const startInterview = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    stream.getTracks().forEach((track) => track.stop());
+  } catch (error) {
+    console.error("授权失败:", error);
+    ElMessage.error({
+      message:
+        "未授权！请点击浏览器地址栏最左侧的“摄像头”图标允许权限，然后刷新页面重试。",
+      duration: 5000,
+    });
+    return;
+  }
   try {
     const res = await createInterview();
     if (res.data.code === 201) {

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 import random
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, current_app, jsonify, request, g
 from app.models.user import User
 from app.models.record import InterviewRecord
 from app.models.question import QuestionBank
@@ -73,16 +73,17 @@ def upload_answer():
     vaild_question_id = request.form.get("question_id")  # 从前端获取有效的题目id
     vaild_audio = request.files.get("audio")  # 从前端获取有效的音频文件
     vaild_video = request.files.get("video")  # 从前端获取有效的视频文件
+    base_dir = current_app.config.get("INTERVIEW_MEDIA_DIR")
+    if not base_dir:
+        return jsonify(
+            {"code": 500, "msg": "服务器未配置媒体存储路径！", "data": None}
+        ), 500
 
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    audio_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.mp3"
-    video_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.mp4"
-    audio_save_dir = os.path.join(
-        "app", "static", f"interview_{vaild_interview_id}", "audio"
-    )
-    video_save_dir = os.path.join(
-        "app", "static", f"interview_{vaild_interview_id}", "video"
-    )
+    audio_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
+    video_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
+    audio_save_dir = os.path.join(base_dir, f"interview_{vaild_interview_id}", "audio")
+    video_save_dir = os.path.join(base_dir, f"interview_{vaild_interview_id}", "video")
     # 创建文件夹
     os.makedirs(audio_save_dir, exist_ok=True)
     os.makedirs(video_save_dir, exist_ok=True)
@@ -102,11 +103,11 @@ def upload_answer():
         if str(q.get("question_id")) == str(vaild_question_id):
             if vaild_audio:
                 q["audio_path"] = (
-                    f"/static/interview_{vaild_interview_id}/audio/{audio_filename}"
+                    f"/api/media/interview_{vaild_interview_id}/audio/{audio_filename}"
                 )
             if vaild_video:
                 q["video_path"] = (
-                    f"/static/interview_{vaild_interview_id}/video/{video_filename}"
+                    f"/api/media/interview_{vaild_interview_id}/video/{video_filename}"
                 )
             break
     flag_modified(target_record, "question_record")
@@ -178,3 +179,20 @@ def get_interview_detail():
         "post": target_interview_detail.post,
     }
     return jsonify({"code": 200, "msg": "成功获取面试详情！", "data": detail})
+
+
+@interview_bp.route("/abort_interview", methods=["POST"])
+@role_required(0)
+def abort_interview():
+    data = request.json
+    current_interview_id = data.get("interview_id")
+    if not current_interview_id:
+        return jsonify({"code": 400, "msg": "缺少interview_id！", "data": None})
+    target_interview = InterviewRecord.query.filter_by(
+        interview_id=current_interview_id
+    ).first()
+    if not target_interview:
+        return jsonify({"code": 404, "msg": "interview_id不存在！", "data": None})
+    db.session.delete(target_interview)
+    db.session.commit()
+    return jsonify({"code": 200, "msg": "无效面试记录已删除", "data": None})
