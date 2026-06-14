@@ -24,11 +24,8 @@
           时间：{{ item.create_time }}
         </div>
         <div style="margin-top: 10px">
-          <el-tag
-            :type="item.status === 1 ? 'success' : 'warning'"
-            size="small"
-          >
-            {{ item.status === 1 ? "已完成" : "进行中" }}
+          <el-tag :type="item.status >= 1 ? 'success' : 'warning'" size="small">
+            {{ item.status >= 1 ? "已完成" : "进行中" }}
           </el-tag>
         </div>
       </el-card>
@@ -37,7 +34,15 @@
     <div style="flex: 1; padding-left: 20px">
       <div v-if="currentDetail">
         <h2>{{ currentDetail.post }} 面试详情</h2>
-        <p>AI评语：{{ currentDetail.analysis_text }}</p>
+
+        <div
+          ref="raderef"
+          style="width: 100%; height: 350px; margin-top: 20px"
+        ></div>
+
+        <p style="margin-top: 20px">
+          AI评语：{{ currentDetail.analysis_text }}
+        </p>
         <p>老师评价：{{ currentDetail.teacher_comment || "暂无评价" }}</p>
       </div>
 
@@ -58,11 +63,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { getHistoryList, getInterviewDetail } from "../../api/interview";
+import * as echarts from "echarts";
 
 const historyList = ref([]);
 const currentDetail = ref(null);
+const raderef = ref(null);
+let myChart = null;
 
 const fetchHistory = async () => {
   try {
@@ -73,15 +81,54 @@ const fetchHistory = async () => {
   }
 };
 
-// 处理卡片点击的动作
 const handleCardClick = async (id) => {
   try {
     const res = await getInterviewDetail(id);
-    // 把后端传回来的 detail 字典赋值给右侧的响应式变量
     currentDetail.value = res.data.data;
+    await nextTick();
+    drawRader(currentDetail.value.dimension_grade);
   } catch (error) {
     console.log("获取详情失败", error);
   }
+};
+
+const drawRader = (gradeData) => {
+  if (myChart != null) {
+    myChart.dispose();
+  }
+  myChart = echarts.init(raderef.value);
+
+  const keys = Object.keys(gradeData);
+  const values = Object.values(gradeData);
+
+  const indicatorArray = keys.map((itemName) => ({
+    name: itemName,
+    max: 100,
+  }));
+
+  const option = {
+    radar: {
+      indicator: indicatorArray,
+      shape: "polygon",
+      radius: "70%",
+    },
+    series: [
+      {
+        type: "radar",
+        data: [
+          {
+            value: values,
+            name: "能力评估",
+            areaStyle: { color: "rgba(64, 158, 255, 0.2)" },
+            lineStyle: { color: "#409EFF" },
+            itemStyle: { color: "#409EFF" },
+          },
+        ],
+      },
+    ],
+  };
+
+  myChart.setOption(option);
 };
 
 onMounted(() => {
@@ -90,7 +137,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 1. 最外层画布：利用 box-sizing 确保 padding 不会撑大视口 */
 .page-canvas {
   display: flex;
   height: 100vh;

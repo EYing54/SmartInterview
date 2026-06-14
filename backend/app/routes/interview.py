@@ -8,6 +8,8 @@ from app.models.question import QuestionBank
 from sqlalchemy.orm.attributes import flag_modified
 from extensions import db
 from app.utils.auth import role_required
+from extensions import scheduler
+from app.utils.tasks import process_single_question
 
 interview_bp = Blueprint("interview", __name__)
 
@@ -93,9 +95,11 @@ def upload_answer():
         vaild_audio.save(audio_save_path)  # 如果存在音频文件则进行储存
     if vaild_video:
         vaild_video.save(video_save_path)  # 如果存在视频文件则进行储存
-    target_record = InterviewRecord.query.filter_by(
-        interview_id=vaild_interview_id
-    ).first()
+    target_record = (
+        InterviewRecord.query.filter_by(interview_id=vaild_interview_id)
+        .with_for_update()
+        .first()
+    )
     question_list = (
         target_record.question_record
     )  # 开始向数据库中存题目对应的音视频路径
@@ -112,6 +116,13 @@ def upload_answer():
             break
     flag_modified(target_record, "question_record")
     db.session.commit()
+    # 新建进程，异步处理ai分析
+    job_id = f"ai_process_{vaild_interview_id}_{vaild_question_id}"
+    scheduler.add_job(
+        id=job_id,
+        func=process_single_question,
+        args=[vaild_interview_id, vaild_question_id],
+    )
     return jsonify({"code": 200, "msg": "回答上传成功！", "data": None})
 
 
@@ -126,15 +137,6 @@ def finish_answer():
     if not target_interview:
         return jsonify({"code": 404, "msg": "id不存在！", "data": None})
     target_interview.status = 1
-    target_interview.dimension_grade = {
-        "专业技能": 85,
-        "沟通表达": 90,
-        "逻辑思维": 80,
-        "综合分数": 88,
-    }  # 假数据
-    target_interview.analysis_text = (
-        "表现不错，但在一些基础概念的解释上还需巩固。"  # 假数据
-    )
     db.session.commit()
     return jsonify({"code": 200, "msg": "面试已结束", "data": None})
 
