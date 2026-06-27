@@ -1,26 +1,35 @@
 <template>
-  <div class="student-layout">
+  <div class="admin-layout">
     <el-menu
       :default-active="$route.path"
+      class="el-menu-demo nav-bar"
       mode="horizontal"
       router
-      class="nav-bar"
+      background-color="#304156"
+      text-color="#fff"
+      active-text-color="#409EFF"
     >
       <el-menu-item
         index="logo"
         disabled
-        style="opacity: 1; font-weight: bold; color: #409eff; cursor: default"
+        style="
+          opacity: 1;
+          cursor: default;
+          font-size: 18px;
+          font-weight: bold;
+          color: white;
+        "
       >
         智能面试系统
       </el-menu-item>
 
-      <el-menu-item index="/student/lobby">模拟面试</el-menu-item>
-      <el-menu-item index="/student/resume">简历分析</el-menu-item>
+      <el-menu-item index="/teacher/classes">我的班级</el-menu-item>
+      <el-menu-item index="/teacher/question">题目推送</el-menu-item>
 
       <div style="flex-grow: 1"></div>
 
       <el-menu-item index="logout" @click="handleLogout">
-        <el-button type="danger" plain size="small">退出登录</el-button>
+        <el-button type="danger" size="small">退出登录</el-button>
       </el-menu-item>
     </el-menu>
 
@@ -37,23 +46,22 @@ const router = useRouter();
 
 const handleLogout = () => {
   localStorage.removeItem("token");
-  localStorage.removeItem("role");
   router.push("/login");
 };
 </script>
 
 <style scoped>
-.student-layout {
+.admin-layout {
   min-height: 100vh;
   background-color: #f5f7fa;
 }
+
 .nav-bar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
+
 .main-content {
   padding: 20px;
   max-width: 1200px;

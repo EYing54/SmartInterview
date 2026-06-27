@@ -70,7 +70,7 @@ const startInterview = async () => {
   try {
     const res = await createInterview();
     if (res.data.code === 201) {
-      ElMessage.success("面试创建成功，正在进入考场...");
+      ElMessage.success("面试创建成功！");
       sessionStorage.setItem(
         "current_interview",
         JSON.stringify(res.data.data),

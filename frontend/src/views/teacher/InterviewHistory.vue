@@ -8,8 +8,14 @@
         overflow-y: auto;
       "
     >
-      <h3 style="margin-bottom: 20px">历史记录</h3>
-
+      <el-button
+        link
+        @click="router.back()"
+        style="margin-right: 10px; font-size: 16px"
+      >
+        <el-icon><ArrowLeft /></el-icon> 返回
+      </el-button>
+      <h3 style="margin: 0">学生历史记录</h3>
       <el-card
         v-for="item in historyList"
         :key="item.interview_id"
@@ -41,7 +47,7 @@
         ></div>
 
         <p style="margin-top: 20px">
-          AI评语：{{ currentDetail.analysis_text || "正在分析中..." }}
+          AI评语：{{ currentDetail.analysis_text }}
         </p>
         <p>老师评价：{{ currentDetail.teacher_comment || "暂无评价" }}</p>
       </div>
@@ -64,8 +70,17 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
-import { getHistoryList, getInterviewDetail } from "../../api/interview";
+import {
+  getStudentInterviewHistory,
+  getStudentInterviewDetail,
+} from "../../api/classes";
 import * as echarts from "echarts";
+import { useRoute, useRouter } from "vue-router";
+import { ArrowLeft } from "@element-plus/icons-vue";
+
+const route = useRoute();
+const router = useRouter();
+const currentStudentId = route.query.id;
 
 const historyList = ref([]);
 const currentDetail = ref(null);
@@ -73,8 +88,9 @@ const raderef = ref(null);
 let myChart = null;
 
 const fetchHistory = async () => {
+  if (!currentStudentId) return;
   try {
-    const res = await getHistoryList();
+    const res = await getStudentInterviewHistory(currentStudentId);
     historyList.value = res.data.data;
   } catch (error) {
     console.log(error);
@@ -83,7 +99,7 @@ const fetchHistory = async () => {
 
 const handleCardClick = async (id) => {
   try {
-    const res = await getInterviewDetail(id);
+    const res = await getStudentInterviewDetail(id);
     currentDetail.value = res.data.data;
     await nextTick();
     drawRader(currentDetail.value.dimension_grade);

@@ -6,6 +6,10 @@ import StudentLayout from "../views/student/StudentLayout.vue";
 import Lobby from "../views/student/Lobby.vue";
 import { patchProp } from "vue";
 import InterviewRoom from "../views/student/InterviewRoom.vue";
+import TeacherLayout from "../views/teacher/TeacherLayout.vue";
+import ClassesManagement from "../views/teacher/ClassesManagement.vue";
+import StudentsManagement from "../views/teacher/StudentsManagement.vue";
+import InterviewHistory from "../views/teacher/InterviewHistory.vue";
 
 const routes = [
   {
@@ -19,7 +23,7 @@ const routes = [
   {
     path: "/admin",
     component: AdminLayout,
-    redirectL: "/admin/question",
+    redirect: "/admin/question",
     children: [
       {
         path: "question",
@@ -43,6 +47,25 @@ const routes = [
       {
         path: "history",
         component: () => import("../views/student/InterviewHistory.vue"),
+      },
+    ],
+  },
+  {
+    path: "/teacher",
+    component: TeacherLayout,
+    redirect: "/teacher/classes",
+    children: [
+      {
+        path: "classes",
+        component: ClassesManagement,
+      },
+      {
+        path: "students",
+        component: StudentsManagement,
+      },
+      {
+        path: "students/student_interview_history",
+        component: InterviewHistory,
       },
     ],
   },

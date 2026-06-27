@@ -145,7 +145,11 @@ def finish_answer():
 @role_required(0)
 def get_interview_history():
     current_student_id = g.current_user_id
-    records = InterviewRecord.query.filter_by(student_id=current_student_id).all()
+    records = (
+        InterviewRecord.query.filter_by(student_id=current_student_id)
+        .order_by(InterviewRecord.create_time.desc())
+        .all()
+    )
     records_list = []
     for i in records:
         single_record_dict = {

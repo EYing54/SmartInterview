@@ -7,5 +7,4 @@ class ClassManagement(db.Model):
     teacher_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), nullable=False)
     class_name = db.Column(db.String(20), nullable=False)
     class_introduce = db.Column(db.String(50))
-    join_rule = db.Column(db.JSON, nullable=False)
     create_time = db.Column(db.DateTime, nullable=False)

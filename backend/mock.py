@@ -94,7 +94,6 @@ def seed_database():
                 teacher_id=teachers[i - 1].user_id,
                 class_name=f"测试虚拟班级_{i:02d}班",
                 class_introduce="通用软件开发实训",
-                join_rule={"require_audit": False, "max_students": 100},
                 create_time=datetime.now(),
             )
             classes.append(c)
