@@ -2,7 +2,7 @@
   <div class="lobby-container">
     <h2 class="lobby-title">欢迎来到模拟面试大厅</h2>
 
-    <el-row :gutter="20" justify="center">
+    <el-row :gutter="20" justify="center" class="cards-row">
       <el-col :span="7">
         <el-card shadow="hover" class="step-card">
           <h3>第 1 步：开始面试！</h3>
@@ -32,13 +32,11 @@
     </el-row>
 
     <div class="start-action">
-      <el-button type="primary" size="large" @click="startInterview"
-        >开始面试</el-button
-      >
-      <div style="margin-top: 15px">
-        <el-button text @click="goToHistory" style="color: #909399">
-          查看历史记录
-        </el-button>
+      <el-button type="primary" size="large" @click="startInterview">
+        开始面试
+      </el-button>
+      <div class="history-action">
+        <el-button text @click="goToHistory"> 查看历史记录 </el-button>
       </div>
     </div>
   </div>
@@ -92,36 +90,81 @@ const goToHistory = () => {
 
 <style scoped>
 .lobby-container {
-  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 105px);
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #f0f2f5;
+  border-radius: 8px;
 }
+
 .lobby-title {
-  text-align: center;
-  margin-bottom: 50px;
+  font-size: 28px;
   color: #303133;
+  margin-bottom: 40px;
+  letter-spacing: 1px;
 }
+
+.cards-row {
+  width: 100%;
+  max-width: 1100px;
+}
+
 .step-card {
-  height: 220px;
-  text-align: center;
+  height: 200px;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
+
 .step-card h3 {
   color: #409eff;
+  margin-top: 0;
   margin-bottom: 15px;
+  text-align: center;
 }
+
 .step-card p {
   color: #606266;
   font-size: 14px;
   line-height: 1.6;
-  text-align: left;
+  margin: 0;
+  text-align: justify;
 }
+
 .start-action {
-  margin-top: 60px;
+  margin-top: 50px;
   text-align: center;
 }
 
-.start-action .el-button {
+.start-action .el-button--primary {
   font-size: 20px;
-  padding: 20px 60px;
+  padding: 24px 60px;
+  border-radius: 8px;
   font-weight: bold;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.start-action .el-button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(64, 158, 255, 0.4);
+}
+
+.history-action {
+  margin-top: 20px;
+}
+
+.history-action .el-button {
+  color: #909399;
+  font-size: 14px;
+}
+
+.history-action .el-button:hover {
+  color: #409eff;
 }
 </style>

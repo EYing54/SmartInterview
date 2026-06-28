@@ -8,7 +8,7 @@ question_bp = Blueprint("question", __name__)
 
 
 @question_bp.route("/add_question", methods=["POST"])  # 添加题目
-@role_required(2)  # 管理员（数据库代号为2）才有权限访问
+@role_required(2)  # 管理员才有权限访问
 def add_question():
     data = request.json  # 获取前端发来的json数据
     question_txte = data.get("question")

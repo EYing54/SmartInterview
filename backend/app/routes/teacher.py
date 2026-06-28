@@ -158,7 +158,7 @@ def remove_student():
 @teacher_bp.route("/get_s_interviews_history", methods=["POST"])
 @role_required(1)
 def get_s_interview_history():
-    data = request.json
+    data = request.json or {}
     current_student_id = data.get("student_id")
     current_teacher_id = g.current_user_id
     current_student = User.query.filter_by(user_id=current_student_id).first()
@@ -196,8 +196,10 @@ def get_s_interview_history():
 @teacher_bp.route("/get_student_interview", methods=["POST"])
 @role_required(1)
 def get_student_interview():
-    data = request.json
+    data = request.json or {}
     current_interview_id = data.get("interview_id")
+    if not current_interview_id:
+        return jsonify({"code": 400, "msg": "缺少面试记录ID！", "data": None}), 400
     current_teacher_id = g.current_user_id
     target_interview = InterviewRecord.query.filter_by(
         interview_id=current_interview_id
@@ -224,3 +226,35 @@ def get_student_interview():
         "post": target_interview.post,
     }
     return jsonify({"code": 200, "msg": "成功获取面试详情！", "data": detail})
+
+
+@teacher_bp.route("/submit_comment", methods=["POST"])
+@role_required(1)
+def submit_comment():
+    data = request.json or {}
+    current_interview_id = data.get("interview_id")
+    if not current_interview_id:
+        return jsonify({"code": 400, "msg": "缺少面试记录ID！", "data": None}), 400
+    comment_text = data.get("comment_text")
+    if not comment_text:
+        return jsonify({"code": 400, "msg": "请输入评论！", "data": None})
+    current_teacher_id = g.current_user_id
+    target_interview = InterviewRecord.query.filter_by(
+        interview_id=current_interview_id
+    ).first()
+    if not target_interview:
+        return jsonify({"code": 404, "msg": "面试记录不存在！", "data": None}), 404
+    target_student_id = target_interview.student_id
+    target_student = User.query.filter_by(user_id=target_student_id).first()
+    student_class_id = target_student.class_id
+    target_class = ClassManagement.query.filter_by(class_id=student_class_id).first()
+    if not target_class:
+        return jsonify({"code": 404, "msg": "班级不存在！", "data": None}), 404
+    target_teacher_id = target_class.teacher_id
+    if str(current_teacher_id) != str(target_teacher_id):
+        return jsonify({"code": 403, "msg": "您无权访问！", "data": None}), 403
+    target_interview.teacher_comment = comment_text
+    target_interview.comment_time = datetime.now()
+    target_interview.status = 3
+    db.session.commit()
+    return jsonify({"code": 200, "msg": "评论发布成功！", "data": None})

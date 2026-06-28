@@ -9,7 +9,7 @@ import InterviewRoom from "../views/student/InterviewRoom.vue";
 import TeacherLayout from "../views/teacher/TeacherLayout.vue";
 import ClassesManagement from "../views/teacher/ClassesManagement.vue";
 import StudentsManagement from "../views/teacher/StudentsManagement.vue";
-import InterviewHistory from "../views/teacher/InterviewHistory.vue";
+import InterviewSHistory from "../views/teacher/InterviewSHistory.vue";
 
 const routes = [
   {
@@ -65,7 +65,7 @@ const routes = [
       },
       {
         path: "students/student_interview_history",
-        component: InterviewHistory,
+        component: InterviewSHistory,
       },
     ],
   },

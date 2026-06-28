@@ -2,7 +2,10 @@
   <div class="page-container">
     <div class="left-column">
       <div class="column-header">
-        <h3>历史记录</h3>
+        <el-button link @click="router.back()" class="back-btn">
+          <el-icon><ArrowLeft /></el-icon> 返回
+        </el-button>
+        <h3>学生历史记录</h3>
       </div>
 
       <el-scrollbar class="scroll-area">
@@ -55,7 +58,7 @@
                 AI 分析报告
               </div>
               <div class="text-box ai-text">
-                {{ currentDetail.analysis_text || "正在分析中..." }}
+                {{ currentDetail.analysis_text || "AI正在分析中，请稍后..." }}
               </div>
             </div>
 
@@ -69,8 +72,37 @@
                 教师评价
               </div>
 
-              <div class="text-box teacher-text">
-                {{ currentDetail.teacher_comment || "暂无评价" }}
+              <div v-if="!isEditing">
+                <div class="text-box teacher-text">
+                  {{
+                    currentDetail.teacher_comment ||
+                    "暂无评价，请点击下方进行点评。"
+                  }}
+                </div>
+                <div class="edit-actions">
+                  <el-button type="primary" size="small" @click="edit">
+                    修改
+                  </el-button>
+                </div>
+              </div>
+
+              <div v-else class="edit-box">
+                <el-input
+                  type="textarea"
+                  :rows="5"
+                  v-model="commentText"
+                  placeholder="请输入详细的指导建议..."
+                />
+                <div class="edit-actions">
+                  <el-button size="small" @click="cancel">取消</el-button>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    @click="save(currentDetail.interview_id)"
+                  >
+                    保存
+                  </el-button>
+                </div>
               </div>
             </div>
           </div>
@@ -79,25 +111,39 @@
     </div>
 
     <div v-else class="empty-state">
-      <el-empty description="👈 请在左侧选择一条历史记录查看雷达图及详情" />
+      <el-empty description="👈 请在左侧选择一条面试记录查看详情" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
-import { getHistoryList, getInterviewDetail } from "../../api/interview";
+import {
+  getStudentInterviewHistory,
+  getStudentInterviewDetail,
+  submitComment,
+} from "../../api/classes";
 import * as echarts from "echarts";
-import { Monitor, Avatar } from "@element-plus/icons-vue";
+import { useRoute, useRouter } from "vue-router";
+import { ArrowLeft, Monitor, Avatar } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+
+const route = useRoute();
+const router = useRouter();
+const currentStudentId = route.query.id;
 
 const historyList = ref([]);
 const currentDetail = ref(null);
 const raderef = ref(null);
 let myChart = null;
 
+const isEditing = ref(false);
+const commentText = ref("");
+
 const fetchHistory = async () => {
+  if (!currentStudentId) return;
   try {
-    const res = await getHistoryList();
+    const res = await getStudentInterviewHistory(currentStudentId);
     historyList.value = res.data.data;
   } catch (error) {
     console.log(error);
@@ -106,7 +152,8 @@ const fetchHistory = async () => {
 
 const handleCardClick = async (id) => {
   try {
-    const res = await getInterviewDetail(id);
+    isEditing.value = false;
+    const res = await getStudentInterviewDetail(id);
     currentDetail.value = res.data.data;
     await nextTick();
     drawRader(currentDetail.value.dimension_grade);
@@ -154,6 +201,26 @@ const drawRader = (gradeData) => {
   myChart.setOption(option);
 };
 
+const edit = () => {
+  isEditing.value = true;
+  commentText.value = currentDetail.value.teacher_comment || "";
+};
+
+const save = async (id) => {
+  try {
+    await submitComment(id, commentText.value);
+    currentDetail.value.teacher_comment = commentText.value;
+    isEditing.value = false;
+    ElMessage.success("保存成功！");
+  } catch (error) {
+    ElMessage.error("保存失败，请重试");
+  }
+};
+
+const cancel = () => {
+  isEditing.value = false;
+};
+
 onMounted(() => {
   fetchHistory();
 });
@@ -195,6 +262,12 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   color: #303133;
+}
+
+.back-btn {
+  margin-right: 12px;
+  font-size: 15px;
+  color: #606266;
 }
 
 .scroll-area {
@@ -290,6 +363,15 @@ onMounted(() => {
 
 .teacher-text {
   border-left: 4px solid #e6a23c;
+}
+
+.edit-box {
+  margin-top: 10px;
+}
+
+.edit-actions {
+  margin-top: 15px;
+  text-align: right;
 }
 
 .empty-state {

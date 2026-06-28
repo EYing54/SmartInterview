@@ -38,3 +38,10 @@ export const getStudentInterviewHistory = (studentId) => {
 export const getStudentInterviewDetail = (interviewId) => {
   return request.post("/get_student_interview", { interview_id: interviewId });
 };
+
+export const submitComment = (interviewId, commentText) => {
+  return request.post("submit_comment", {
+    interview_id: interviewId,
+    comment_text: commentText,
+  });
+};
