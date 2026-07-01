@@ -1,6 +1,7 @@
 from extensions import db
 
 
+# 教师管理班级的表
 class ClassManagement(db.Model):
     __tablename__ = "class_management"
     class_id = db.Column(db.Integer, primary_key=True, autoincrement=True)

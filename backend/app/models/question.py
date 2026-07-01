@@ -2,6 +2,7 @@ from extensions import db
 from sqlalchemy.dialects.mysql import TINYINT
 
 
+# 题库
 class QuestionBank(db.Model):
     __tablename__ = "question_bank"
     question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -11,6 +12,7 @@ class QuestionBank(db.Model):
     create_time = db.Column(db.DateTime, nullable=False)
 
 
+# 标签池
 class TagPool(db.Model):
     __tablename__ = "tag_pool"
     tag_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -18,6 +20,7 @@ class TagPool(db.Model):
     create_time = db.Column(db.DateTime, nullable=False)
 
 
+# 题目标签关联表
 class QuestionTagRelation(db.Model):
     __tablename__ = "question_tag_relation"
     relation_id = db.Column(db.Integer, primary_key=True, autoincrement=True)

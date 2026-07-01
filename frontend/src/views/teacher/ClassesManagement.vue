@@ -139,8 +139,8 @@ const goToStudents = (classId) => {
 
 const deleteCurrentClass = (id) => {
   ElMessageBox.confirm("确定要删除该班级吗？", "警告", {
-    confirmButtonText: "确认",
     cancelButtonText: "取消",
+    confirmButtonText: "确认",
     type: "warning",
   })
     .then(async () => {

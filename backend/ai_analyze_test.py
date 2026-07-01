@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("AI_API_KEY"), base_url=os.getenv("AI_BASE_URL"))
+client = OpenAI(api_key=os.getenv("TEXT_API_KEY"), base_url=os.getenv("TEXT_BASE_URL"))
 
 
 def test_ai_grader(question: str, student_answer: str):
@@ -30,7 +30,7 @@ def test_ai_grader(question: str, student_answer: str):
     print("正在进行打分...")
 
     response = client.chat.completions.create(
-        model=os.getenv("AI_MODEL"),
+        model=os.getenv("TEXT_MODEL"),
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},

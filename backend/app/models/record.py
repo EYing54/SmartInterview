@@ -2,6 +2,7 @@ from extensions import db
 from sqlalchemy.dialects.mysql import TINYINT
 
 
+# 面试记录
 class InterviewRecord(db.Model):
     __tablename__ = "interview_record"
     interview_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -17,12 +18,12 @@ class InterviewRecord(db.Model):
     comment_time = db.Column(db.DateTime)
     post = db.Column(db.String(30), nullable=False)
     status = db.Column(TINYINT, nullable=False, default=0)
-
     # User作为不同属性的外键需要多一个“指路”的步骤
     student = db.relationship("User", foreign_keys=[student_id])
     teacher = db.relationship("User", foreign_keys=[teacher_id])
 
 
+# 简历记录
 class ResumeRecord(db.Model):
     __tablename__ = "resume_record"
     resume_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -36,7 +37,6 @@ class ResumeRecord(db.Model):
     comment_time = db.Column(db.DateTime)
     post = db.Column(db.String(30), nullable=False)
     status = db.Column(TINYINT, nullable=False, default=0)
-
     # 路线指引（同上）
     student = db.relationship("User", foreign_keys=[student_id])
     teacher = db.relationship("User", foreign_keys=[teacher_id])

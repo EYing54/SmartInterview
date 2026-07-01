@@ -18,6 +18,6 @@ class User(db.Model):
 
     @property
     def role_name(self) -> str:
-        """动态将数字 role 转换为中文字符串"""
+        # 动态将数字 role 转换为中文字符串
         # 使用 .get() 并在找不到时返回 "未知角色"，防止脏数据导致系统崩溃
         return self.ROLE_MAP.get(self.role, "未知角色")

@@ -5,6 +5,7 @@ from extensions import db
 from flask import Blueprint, jsonify, g, request
 from app.utils.auth import role_required
 from datetime import datetime
+import pandas as pd
 
 teacher_bp = Blueprint("teacher", __name__)
 
@@ -93,15 +94,15 @@ def my_classes():
 @role_required(1)
 def class_students():
     data = request.json.get("class_id")
+    class_object = ClassManagement.query.filter_by(class_id=data).first()
+    if not class_object:
+        return jsonify({"code": 404, "msg": "班级不存在！", "data": None}), 404
     class_students_object = User.query.filter_by(class_id=data, role=0).all()
-    if not class_students_object:
-        return jsonify({"code": 404, "msg": "班级或学生不存在！", "data": None}), 404
     class_students_list = []
     for i in class_students_object:
         class_students_list.append(
             {"student_id": i.user_id, "student_name": i.real_name}
         )
-    class_object = ClassManagement.query.filter_by(class_id=data).first()
     return jsonify(
         {
             "code": 200,
@@ -258,3 +259,55 @@ def submit_comment():
     target_interview.status = 3
     db.session.commit()
     return jsonify({"code": 200, "msg": "评论发布成功！", "data": None})
+
+
+@teacher_bp.route("/import_students", methods=["POST"])
+@role_required(1)
+def import_students():
+    data = request.form or {}
+    file = request.files or {}
+    current_file = file.get("excel_file")
+    current_class_id = data.get("class_id")
+    if not current_file or not current_class_id:
+        return jsonify(
+            {"code": 400, "msg": "未获取到文件或班级ID！", "data": None}
+        ), 400
+    try:
+        excel_file = pd.read_excel(current_file)
+        student_list = excel_file.to_dict(orient="records")
+        unmatched_students = []
+        for student in student_list:
+            name = str(student.get("姓名", "")).strip()
+            username = str(student.get("学号", "")).strip()
+            target_student = User.query.filter_by(username=username).first()
+            if not target_student or str(target_student.real_name) != name:
+                unmatched_students.append(username)
+                continue
+            target_student.class_id = current_class_id
+        db.session.commit()
+        total_students = len(student_list)
+        unmatched_count = len(unmatched_students)
+        if unmatched_count == total_students and total_students > 0:
+            return jsonify(
+                {
+                    "code": 400,
+                    "msg": "未找到任何匹配的学生，导入失败！",
+                    "data": unmatched_students,
+                }
+            ), 400
+        elif unmatched_count > 0:
+            return jsonify(
+                {
+                    "code": 200,
+                    "msg": f"部分导入成功！有 {unmatched_count} 名学生未找到对应信息。",
+                    "data": unmatched_students,
+                }
+            )
+        else:
+            return jsonify({"code": 200, "msg": "全部学生导入成功！", "data": None})
+    except Exception as e:
+        db.session.rollback()
+        print(f"导入失败报错信息: {str(e)}")
+        return jsonify(
+            {"code": 500, "msg": "解析或入库失败，请检查文件格式", "data": None}
+        ), 500

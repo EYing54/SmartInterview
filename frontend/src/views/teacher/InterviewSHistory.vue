@@ -263,7 +263,9 @@ onMounted(() => {
   font-size: 16px;
   color: #303133;
 }
-
+.back-btn {
+  transform: translateY(2px);
+}
 .back-btn {
   margin-right: 12px;
   font-size: 15px;

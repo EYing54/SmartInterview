@@ -40,8 +40,15 @@ export const getStudentInterviewDetail = (interviewId) => {
 };
 
 export const submitComment = (interviewId, commentText) => {
-  return request.post("submit_comment", {
+  return request.post("/submit_comment", {
     interview_id: interviewId,
     comment_text: commentText,
   });
+};
+
+export const importStudents = (classId, excelFile) => {
+  const formData = new FormData();
+  formData.append("class_id", classId);
+  formData.append("excel_file", excelFile);
+  return request.post("/import_students", formData);
 };
