@@ -9,7 +9,7 @@ load_dotenv()
 
 # 🚨 这里的密钥必须和你的 .env 文件中的 JWT_SECRET_KEY 完全一致！
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-raw_password = "2460105133"
+raw_password = "sjiwug@Ds^&584@*aw1&"
 
 # 运算生成密文
 hashed = hmac.new(

@@ -10,7 +10,9 @@ from app.models import User
 auth_bp = Blueprint("auth", __name__)
 load_dotenv()
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-fallback-default-secret-key")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET_KEY 环境变量未设置！")
 
 
 def encrypt_password(raw_password: str) -> str:

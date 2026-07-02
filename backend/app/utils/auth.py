@@ -14,7 +14,9 @@ def token_required(f):
             ), 401
         token = auth_header[7:]
         try:
-            SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback_secret_key")
+            SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+            if not SECRET_KEY:
+                raise RuntimeError("JWT_SECRET_KEY 环境变量未设置！")
             decoded_data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             g.current_user_id = decoded_data.get("sub")
             g.current_user_role = decoded_data.get("role")
