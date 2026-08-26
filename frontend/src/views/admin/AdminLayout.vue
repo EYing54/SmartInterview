@@ -23,9 +23,9 @@
         智能面试系统
       </el-menu-item>
 
-      <el-menu-item index="/admin/student">学生端管理</el-menu-item>
-      <el-menu-item index="/admin/teacher">教师端管理</el-menu-item>
       <el-menu-item index="/admin/question">题库管理</el-menu-item>
+      <el-menu-item index="/admin/student">学生管理</el-menu-item>
+      <el-menu-item index="/admin/teacher">教师管理</el-menu-item>
 
       <div style="flex-grow: 1"></div>
 
@@ -54,7 +54,7 @@ const handleLogout = () => {
 <style scoped>
 .admin-layout {
   min-height: 100vh;
-  background-color: #f5f7fa; /* 稍微给一点浅灰背景，让里面的白色表格更显眼 */
+  background-color: #f5f7fa;
 }
 .main-content {
   padding: 20px;

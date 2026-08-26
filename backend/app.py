@@ -1,5 +1,5 @@
 from app import create_app
-from app.models import question, record, class_management, user  # noqa: F401
+from app.models import class_management, question, record, user  # noqa: F401
 
 app = create_app()
 

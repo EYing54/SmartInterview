@@ -8,7 +8,7 @@ class QuestionBank(db.Model):
     question_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
-    is_deleted = db.Column(TINYINT, nullable=False)
+    is_deleted = db.Column(TINYINT, nullable=False, default=0)
     create_time = db.Column(db.DateTime, nullable=False)
 
 

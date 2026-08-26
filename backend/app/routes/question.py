@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify  # noqa: F401
-from app.models.question import QuestionBank
-from extensions import db
 from datetime import datetime
+
+from app.models.question import QuestionBank
 from app.utils.auth import role_required
+from extensions import db
+from flask import Blueprint, jsonify, request
 
 question_bp = Blueprint("question", __name__)
 
@@ -11,11 +12,11 @@ question_bp = Blueprint("question", __name__)
 @role_required(2)  # 管理员才有权限访问
 def add_question():
     data = request.json  # 获取前端发来的json数据
-    question_txte = data.get("question")
+    question_text = data.get("question")
     answer_text = data.get("answer")
 
     new_question = QuestionBank(
-        question=question_txte,
+        question=question_text,
         answer=answer_text,
         is_deleted=0,
         create_time=datetime.now(),

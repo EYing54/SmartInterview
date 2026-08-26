@@ -15,6 +15,7 @@ class User(db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey("class_management.class_id"))
     ROLE_MAP = {0: "学生", 1: "教师", 2: "管理员"}
     post = db.Column(db.String(30))
+    is_deleted = db.Column(TINYINT, nullable=False)
 
     @property
     def role_name(self) -> str:

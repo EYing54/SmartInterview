@@ -1,8 +1,9 @@
-import os
 import base64
+import os
 import pathlib
-from openai import OpenAI
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # 1. 强行加载当前目录下的 .env 文件，让 os.getenv 能成功读到你的 API_KEY
 load_dotenv()
@@ -14,12 +15,11 @@ def test_qwen_asr_with_base64():
     file_path = r"E:\music\Till the Sky Falls Down .m4a"
     # ==================================================
 
-    # 针对前端 WebRTC 的原生录音，MIME 类型通常是 audio/webm
     audio_mime_type = "audio/mp4"
 
     file_path_obj = pathlib.Path(file_path)
     if not file_path_obj.exists():
-        print(f"❌ 找不到音频文件，请仔细检查路径是否拼写正确: {file_path}")
+        print(f"找不到音频文件，请仔细检查路径是否拼写正确: {file_path}")
         return
 
     print("1. 正在读取本地录音并进行 Base64 编码...")
@@ -58,7 +58,7 @@ def test_qwen_asr_with_base64():
         print(completion.choices[0].message.content)
         print("==========================================\n")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"\n❌ 请求报错了，错误详情：{e}")
 
 

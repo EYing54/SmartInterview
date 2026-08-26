@@ -1,21 +1,23 @@
 import os
 import random
 from datetime import datetime, timedelta
-from sqlalchemy import text
+
 from app import create_app
-from extensions import db
-from app.models.user import User
 from app.models.class_management import ClassManagement
+from app.models.question import QuestionBank, QuestionTagRelation, TagPool
 from app.models.record import InterviewRecord, ResumeRecord
-from app.models.question import QuestionBank, TagPool, QuestionTagRelation
+from app.models.user import User
 from app.routes.auth import encrypt_password
+from extensions import db
+from sqlalchemy import text
 
 
 def seed_database():
     app = create_app()
     with app.app_context():
+        db.create_all()
         print("🔧 正在使用纯净模式清理旧数据...")
-        # 强制关闭外键检查，直接清空数据，完全不碰你的表结构
+        # 强制关闭外键检查，直接清空数据
         db.session.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
 
         tables = [
@@ -37,11 +39,10 @@ def seed_database():
         db.session.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
         db.session.commit()
 
-        print("🌱 开始按照最新包含post字段的模型播种数据...")
+        print("正在写入数据")
         common_pwd = encrypt_password("123456")
         stu_pwd = encrypt_password("2460105133")
 
-        # 提前准备好岗位列表
         posts = [
             "Java开发工程师",
             "前端开发工程师",
@@ -54,17 +55,18 @@ def seed_database():
         ]
 
         # ==========================================
-        # 1. 独立创建教师 (此时不需要 class_id)
+        # 1. 独立创建教师
         # ==========================================
         users_to_add = [
             User(
-                username="admin",
+                username="admin2026",
                 nickname="系统管理员",
                 password=common_pwd,
                 role=2,
                 real_name="管理员",
                 avatar_path="",
                 create_time=datetime.now(),
+                is_deleted=0,  # 👈 新增：初始化为正常状态
             )
         ]
 
@@ -78,6 +80,7 @@ def seed_database():
                 real_name=f"讲师{i}",
                 avatar_path="",
                 create_time=datetime.now(),
+                is_deleted=0,  # 👈 新增：初始化为正常状态
             )
             teachers.append(t)
             users_to_add.append(t)
@@ -86,7 +89,7 @@ def seed_database():
         db.session.commit()
 
         # ==========================================
-        # 2. 独立创建班级 (此时绑定上一步生成的 teacher_id)
+        # 2. 独立创建班级
         # ==========================================
         classes = []
         for i in range(1, 11):
@@ -101,11 +104,10 @@ def seed_database():
         db.session.commit()
 
         # ==========================================
-        # 3. 批量创建学生 (关键点：在这里把岗位给学生绑上)
+        # 3. 批量创建学生
         # ==========================================
         students = []
 
-        # 你的主账号：明确绑定 Java 开发
         bonan = User(
             username="2460105133",
             nickname="mikufans",
@@ -115,7 +117,8 @@ def seed_database():
             avatar_path="",
             create_time=datetime.now(),
             class_id=classes[0].class_id,
-            post="Java开发工程师",  # 👈 新增字段赋值
+            post="Java开发工程师",
+            is_deleted=0,  # 👈 新增：初始化为正常状态
         )
         students.append(bonan)
 
@@ -129,7 +132,8 @@ def seed_database():
                 avatar_path="",
                 create_time=datetime.now(),
                 class_id=random.choice(classes).class_id,
-                post=random.choice(posts),  # 👈 匿名学员随机绑定岗位
+                post=random.choice(posts),
+                is_deleted=0,  # 👈 新增：初始化为正常状态
             )
             students.append(s)
         db.session.add_all(students)
@@ -220,7 +224,7 @@ def seed_database():
                 analysis_text=f"AI综合评估：{random.choice(feedbacks)}",
                 teacher_comment=f"教师人工复核评语：{random.choice(feedbacks)}",
                 comment_time=datetime.now() - timedelta(hours=random.randint(1, 24)),
-                post=stu.post,  # 👈 历史记录的岗位直接从用户的设定里提取，保持业务一致性
+                post=stu.post,
                 status=random.choice([0, 1]),
             )
             interviews.append(iv)
@@ -247,7 +251,7 @@ def seed_database():
         db.session.add_all(resumes)
         db.session.commit()
 
-        print("🎉 完美收工！数据已经装填完毕，所有学生账号都自带了默认岗位。")
+        print("🎉 完美收工！数据已经装填完毕，所有账号均已为默认状态。")
 
 
 if __name__ == "__main__":

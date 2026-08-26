@@ -10,6 +10,8 @@ import TeacherLayout from "../views/teacher/TeacherLayout.vue";
 import ClassesManagement from "../views/teacher/ClassesManagement.vue";
 import StudentsManagement from "../views/teacher/StudentsManagement.vue";
 import InterviewSHistory from "../views/teacher/InterviewSHistory.vue";
+import StudentManage from "../views/admin/StudentManage.vue";
+import TeacherManage from "../views/admin/TeacherManage.vue";
 
 const routes = [
   {
@@ -29,6 +31,8 @@ const routes = [
         path: "question",
         component: QuestionManage,
       },
+      { path: "student", component: StudentManage },
+      { path: "teacher", component: TeacherManage },
     ],
   },
   {
@@ -76,12 +80,12 @@ const router = createRouter({
 });
 
 //路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const myToken = localStorage.getItem("token");
   if (to.path !== "/login" && !myToken) {
-    next("/login");
+    return "/login";
   } else {
-    next();
+    return;
   }
 });
 

@@ -1,11 +1,12 @@
-import os
-import json
 import base64
+import json
+import os
 import pathlib
 from datetime import datetime, timedelta
-from openai import OpenAI
-from extensions import db, scheduler
+
 from app.models.record import InterviewRecord
+from extensions import db, scheduler
+from openai import OpenAI
 from sqlalchemy.orm.attributes import flag_modified
 
 

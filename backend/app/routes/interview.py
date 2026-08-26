@@ -1,15 +1,15 @@
 import os
-from datetime import datetime
 import random
-from flask import Blueprint, current_app, jsonify, request, g
-from app.models.user import User
-from app.models.record import InterviewRecord
+from datetime import datetime
+
 from app.models.question import QuestionBank
-from sqlalchemy.orm.attributes import flag_modified
-from extensions import db
+from app.models.record import InterviewRecord
+from app.models.user import User
 from app.utils.auth import role_required
-from extensions import scheduler
 from app.utils.tasks import process_single_question
+from extensions import db, scheduler
+from flask import Blueprint, current_app, g, jsonify, request
+from sqlalchemy.orm.attributes import flag_modified
 
 interview_bp = Blueprint("interview", __name__)
 

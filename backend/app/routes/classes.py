@@ -1,11 +1,12 @@
+from datetime import datetime
+
+import pandas as pd
 from app.models.class_management import ClassManagement
 from app.models.record import InterviewRecord, ResumeRecord
 from app.models.user import User
-from extensions import db
-from flask import Blueprint, jsonify, g, request
 from app.utils.auth import role_required
-from datetime import datetime
-import pandas as pd
+from extensions import db
+from flask import Blueprint, g, jsonify, request
 
 teacher_bp = Blueprint("teacher", __name__)
 
@@ -307,7 +308,7 @@ def import_students():
             return jsonify({"code": 200, "msg": "全部学生导入成功！", "data": None})
     except Exception as e:
         db.session.rollback()
-        print(f"导入失败报错信息: {str(e)}")
+        print(f"导入失败报错信息: {e}")
         return jsonify(
             {"code": 500, "msg": "解析或入库失败，请检查文件格式", "data": None}
         ), 500

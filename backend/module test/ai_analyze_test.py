@@ -1,7 +1,8 @@
-import os
 import json
-from openai import OpenAI
+import os
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
@@ -48,7 +49,7 @@ def test_ai_grader(question: str, student_answer: str):
         print("\n✅ 成功解析为字典！")
         print(f"📊 提取到的专业技能分数：{json_data['dimension_grade']['专业技能']}")
         print(f"📝 提取到的评语：{json_data['analysis_text']}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print("\n❌ JSON 解析失败，大模型没有按格式输出：", e)
 
 
