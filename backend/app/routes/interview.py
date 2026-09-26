@@ -79,9 +79,7 @@ def upload_answer():
         "INTERVIEW_MEDIA_DIR"
     )  # 从config.py文件中获取面试记录的存储路径
     if not interview_dir:
-        return jsonify(
-            {"code": 500, "msg": "服务器未配置媒体存储路径！", "data": None}
-        ), 500
+        return jsonify({"code": 500, "msg": "服务器配置出错！", "data": None}), 500
 
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     audio_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
@@ -112,13 +110,9 @@ def upload_answer():
     for q in question_list:
         if str(q.get("question_id")) == str(vaild_question_id):
             if vaild_audio:
-                q["audio_path"] = (
-                    f"/api/media/interview_{vaild_interview_id}/audio/{audio_filename}"
-                )
+                q["audio_path"] = audio_filename
             if vaild_video:
-                q["video_path"] = (
-                    f"/api/media/interview_{vaild_interview_id}/video/{video_filename}"
-                )
+                q["video_path"] = video_filename
             break
     flag_modified(target_record, "question_record")
     db.session.commit()

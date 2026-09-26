@@ -49,9 +49,16 @@ def upload_avatar():
             break
         if num == 4:
             return jsonify({"code": 400, "msg": "图片格式错误！", "data": None}), 400
-    modified_filename = f"{str(current_user_id)}_{str()}{filename_extension}"
-    avatar_dir = current_app.config("AVATAR_MEDIA_DIR")
-    avatar.save(modified_filename, avatar_dir)
+    time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    modified_filename = f"{current_user_id}_{time}{filename_extension}"
+    avatar_dir = current_app.config.get("AVATAR_MEDIA_DIR")
+    if not avatar_dir:
+        return jsonify({"code": 500, "msg": "服务器配置错误！", "data": None}), 500
+    os.makedirs(avatar_dir, exist_ok=True)
+    avatar_save_path = os.path.join(avatar_dir, modified_filename)
+    avatar.save(avatar_save_path)
+    user.avatar_path = modified_filename
+    db.session.commit()
     return jsonify({"code": 200, "msg": "头像已储存！", "data": None})
 
 
@@ -59,9 +66,7 @@ def upload_avatar():
 def get_user_avatar(filename):
     avatar_dir = current_app.config.get("AVATAR_MEDIA_DIR")
     if not avatar_dir:
-        return jsonify(
-            {"code": 500, "msg": "服务器未配置头像存储路径！", "data": None}
-        ), 500
+        return jsonify({"code": 500, "msg": "服务器配置错误！", "data": None}), 500
     full_path = os.path.join(avatar_dir, filename)
     if not os.path.exists(full_path):
         return jsonify({"code": 404, "msg": "头像文件不存在！", "data": None}), 404

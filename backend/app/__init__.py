@@ -6,6 +6,7 @@ from app.routes.account import account_bp
 from app.routes.auth import auth_bp
 from app.routes.classes import classes_bp
 from app.routes.interview import interview_bp
+from app.routes.profile import profile_bp
 from app.routes.question import question_bp
 
 
@@ -29,5 +30,6 @@ def create_app():
     app.register_blueprint(interview_bp)
     app.register_blueprint(classes_bp)
     app.register_blueprint(account_bp)
+    app.register_blueprint(profile_bp)
 
     return app

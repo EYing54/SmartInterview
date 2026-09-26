@@ -45,9 +45,7 @@ def process_single_question(interview_id, question_id):
     )
 
     current_question_text = ""
-    audio_url = (
-        ""  # 这里拿到的将是形如 /api/media/interview_x/audio/xxx.webm 的虚拟路由
-    )
+    audio_filename = ""  # 这里拿到的是形录音文件的文件名
     user_answer_text = ""
 
     # ---- 阶段一：只读阶段，快速获取题目内容和录音文件 URL ----
@@ -57,7 +55,7 @@ def process_single_question(interview_id, question_id):
         ).first()
 
         if not target_record:
-            print(f"❌ 未找到面试记录: {interview_id}")
+            print(f"未找到面试记录: {interview_id}")
             return
 
         question_list = target_record.question_record
@@ -66,34 +64,31 @@ def process_single_question(interview_id, question_id):
             if str(q.get("question_id")) == str(question_id):
                 current_question_text = q.get("question", "未知题目")
                 # 从数据库中取出前端路由视角的 URL 路径
-                audio_url = q.get("audio_path", "")
+                audio_filename = q.get("audio_path", "")
                 break
 
     # 如果没有找到音频路径，使用兜底文本
-    if not audio_url:
-        print(f"⚠ 警告：单题 {question_id} 未找到录音 URL！")
+    if not audio_filename:
+        print(f"警告：单题 {question_id} 未找到录音 URL！")
         user_answer_text = "（系统提示：考生未录音或音频文件丢失）"
     else:
         # ---- 阶段二：将虚拟 Web URL 还原为本地服务器硬盘的真实物理路径，并调用 ASR ----
         try:
-            # 1. 从 URL 中安全截取出最终的文件名 (例如 xxx.webm)
-            filename = audio_url.split("/")[-1]
-
-            # 2. 从当前 Flask 应用的配置中，动态获取媒体根目录
+            # 从当前 Flask 应用的配置中，动态获取媒体根目录
             base_dir = scheduler.app.config.get("INTERVIEW_MEDIA_DIR")
 
             if not base_dir:
                 raise ValueError("未在系统配置中找到 INTERVIEW_MEDIA_DIR 环境变量")
 
-            # 3. 严格按照视图函数里存储文件时的规则，还原物理绝对路径
+            # 还原物理路径
             real_audio_disk_path = os.path.join(
-                base_dir, f"interview_{interview_id}", "audio", filename
+                base_dir, f"interview_{interview_id}", "audio", audio_filename
             )
 
             file_path_obj = pathlib.Path(real_audio_disk_path)
 
             if file_path_obj.exists():
-                print(f"🎙 后台线程已成功定位物理文件，开始转写: {real_audio_disk_path}")
+                print(f"后台线程已成功定位物理文件，开始转写: {real_audio_disk_path}")
 
                 # 读取本地物理文件字节流并转化为 Base64
                 base64_str = base64.b64encode(file_path_obj.read_bytes()).decode()
@@ -118,15 +113,13 @@ def process_single_question(interview_id, question_id):
                     extra_body={"asr_options": {"enable_itn": False}},
                 )
                 user_answer_text = asr_completion.choices[0].message.content
-                print(f"✨ 语音转文字成功: {user_answer_text}")
+                print(f"语音转文字成功: {user_answer_text}")
             else:
-                print(
-                    f"❌ 物理还原成功，但硬盘上依然不存在该文件: {real_audio_disk_path}"
-                )
+                print(f"物理还原成功，但硬盘上依然不存在该文件: {real_audio_disk_path}")
                 user_answer_text = "（系统提示：录音物理文件在服务器中未找到）"
 
         except Exception as e:
-            print(f"❌ 还原路径或呼叫阿里 ASR 发生异常: {e}")
+            print(f"还原路径或呼叫阿里 ASR 发生异常: {e}")
             user_answer_text = "（系统提示：语音识别阶段发生系统故障）"
 
     # ---- 阶段三：调用文本大模型，针对转写出的真实文本进行技术评估 ----
@@ -165,7 +158,7 @@ def process_single_question(interview_id, question_id):
         single_comment = ai_result.get("comment", "单题分析失败。")
 
     except Exception as e:
-        print(f"❌ 单题 AI 分析失败 (题目ID: {question_id}): {e}")
+        print(f"单题 AI 分析失败 (题目ID: {question_id}): {e}")
         single_score = {"专业技能": 0, "沟通表达": 0, "逻辑思维": 0, "综合分数": 0}
         single_comment = "单题分析出现异常。"
 
@@ -229,7 +222,7 @@ def process_single_question(interview_id, question_id):
 
     # ---- 阶段五：整场面试结束后的全局统筹大模型分析 ----
     if is_all_finished:
-        print("🎉 10道题数据全部收集完毕！正在呼叫全局 AI 进行最后统筹...")
+        print("10道题数据全部收集完毕！正在呼叫全局 AI 进行最后评分...")
 
         global_system_prompt = """你是一个严苛且专业的资深技术面试官。
 请根据提供的【面试全过程记录】，综合评估考生的表现。你需要自行提炼出最能概括该考生水平的 4-5 个评估维度。
@@ -268,7 +261,7 @@ def process_single_question(interview_id, question_id):
             global_comment = ai_result.get("analysis_text", "全局分析生成失败。")
 
         except Exception as e:
-            print(f"❌ 全局 AI 分析发生异常: {e}")
+            print(f"AI分析发生异常: {e}")
             final_dimension_grade = {"分析失败": 0}
             global_comment = "全局分析超时或异常。"
 
@@ -287,4 +280,4 @@ def process_single_question(interview_id, question_id):
 
                 flag_modified(final_record, "dimension_grade")
                 db.session.commit()
-                print("✅ 完美交卷！动态维度和综合评语已存入数据库！")
+                print("动态维度和综合评语已存入数据库！")
