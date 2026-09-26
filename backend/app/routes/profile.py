@@ -63,14 +63,12 @@ def upload_avatar():
     return jsonify({"code": 200, "msg": "头像已储存！", "data": None})
 
 
-@profile_bp.route("/get_user_avatar/<filename>", methods=["GET"])
-@role_required(0, 1, 2)
-def get_user_avatar(filename):
-    current_user_id = g.current_user_id
+@profile_bp.route("/get_user_avatar/<int:user_id>/<filename>", methods=["GET"])
+def get_user_avatar(user_id, filename):
     avatar_dir = current_app.config.get("AVATAR_MEDIA_DIR")
     if not avatar_dir:
         return jsonify({"code": 500, "msg": "服务器配置错误！", "data": None}), 500
-    user_avatar_dir = os.path.join(avatar_dir, f"user_{current_user_id}")
+    user_avatar_dir = os.path.join(avatar_dir, f"user_{user_id}")
     full_path = os.path.join(user_avatar_dir, filename)
     if not os.path.exists(full_path):
         return jsonify({"code": 404, "msg": "头像文件不存在！", "data": None}), 404
