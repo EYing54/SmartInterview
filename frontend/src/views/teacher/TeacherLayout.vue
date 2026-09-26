@@ -20,7 +20,7 @@
           color: white;
         "
       >
-        智能面试系统
+        智能面试平台
       </el-menu-item>
 
       <el-menu-item index="/teacher/classes">我的班级</el-menu-item>

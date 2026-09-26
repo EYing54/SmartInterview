@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 from app.routes.account import account_bp
 from app.routes.auth import auth_bp
-from app.routes.classes import teacher_bp
+from app.routes.classes import classes_bp
 from app.routes.interview import interview_bp
 from app.routes.question import question_bp
 
@@ -27,7 +27,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(question_bp)
     app.register_blueprint(interview_bp)
-    app.register_blueprint(teacher_bp)
+    app.register_blueprint(classes_bp)
     app.register_blueprint(account_bp)
 
     return app

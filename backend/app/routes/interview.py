@@ -75,8 +75,10 @@ def upload_answer():
     vaild_question_id = request.form.get("question_id")  # 从前端获取有效的题目id
     vaild_audio = request.files.get("audio")  # 从前端获取有效的音频文件
     vaild_video = request.files.get("video")  # 从前端获取有效的视频文件
-    base_dir = current_app.config.get("INTERVIEW_MEDIA_DIR")
-    if not base_dir:
+    interview_dir = current_app.config.get(
+        "INTERVIEW_MEDIA_DIR"
+    )  # 从config.py文件中获取面试记录的存储路径
+    if not interview_dir:
         return jsonify(
             {"code": 500, "msg": "服务器未配置媒体存储路径！", "data": None}
         ), 500
@@ -84,8 +86,12 @@ def upload_answer():
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     audio_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
     video_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
-    audio_save_dir = os.path.join(base_dir, f"interview_{vaild_interview_id}", "audio")
-    video_save_dir = os.path.join(base_dir, f"interview_{vaild_interview_id}", "video")
+    audio_save_dir = os.path.join(
+        interview_dir, f"interview_{vaild_interview_id}", "audio"
+    )
+    video_save_dir = os.path.join(
+        interview_dir, f"interview_{vaild_interview_id}", "video"
+    )
     # 创建文件夹
     os.makedirs(audio_save_dir, exist_ok=True)
     os.makedirs(video_save_dir, exist_ok=True)

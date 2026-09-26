@@ -5,7 +5,7 @@ from app.utils.encrypt import encrypt_password
 from extensions import db
 from flask import Blueprint, jsonify, request
 
-account_bp = Blueprint("user", __name__)
+account_bp = Blueprint("account", __name__)
 
 
 @account_bp.route("/get_student_list", methods=["POST"])

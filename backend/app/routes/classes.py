@@ -8,10 +8,10 @@ from app.utils.auth import role_required
 from extensions import db
 from flask import Blueprint, g, jsonify, request
 
-teacher_bp = Blueprint("teacher", __name__)
+classes_bp = Blueprint("classes", __name__)
 
 
-@teacher_bp.route("/create_class", methods=["POST"])
+@classes_bp.route("/create_class", methods=["POST"])
 @role_required(1)
 def add_class():
     data = request.json or {}
@@ -41,7 +41,7 @@ def add_class():
     return jsonify({"code": 200, "msg": "创建班级成功！", "data": None})
 
 
-@teacher_bp.route("/update_class_information", methods=["POST"])
+@classes_bp.route("/update_class_information", methods=["POST"])
 @role_required(1)
 def update_class_information():
     data = request.json or {}
@@ -71,7 +71,7 @@ def update_class_information():
     return jsonify({"code": 200, "msg": "班级数据修改成功！", "data": None})
 
 
-@teacher_bp.route("/query_my_classes", methods=["GET", "POST"])
+@classes_bp.route("/query_my_classes", methods=["GET", "POST"])
 @role_required(1)
 def my_classes():
     current_teacher_id = g.current_user_id
@@ -91,7 +91,7 @@ def my_classes():
     return jsonify({"code": 200, "msg": "成功查询到班级！", "data": classes_list})
 
 
-@teacher_bp.route("/query_class_students", methods=["POST"])
+@classes_bp.route("/query_class_students", methods=["POST"])
 @role_required(1)
 def class_students():
     data = request.json.get("class_id")
@@ -117,7 +117,7 @@ def class_students():
     )
 
 
-@teacher_bp.route("/delete_class", methods=["POST"])
+@classes_bp.route("/delete_class", methods=["POST"])
 @role_required(1)
 def delete_class():
     data = request.json or {}
@@ -135,7 +135,7 @@ def delete_class():
     return jsonify({"code": 200, "msg": "班级已删除！", "data": None})
 
 
-@teacher_bp.route("/remove_student", methods=["POST"])
+@classes_bp.route("/remove_student", methods=["POST"])
 @role_required(1)
 def remove_student():
     data = request.json or {}
@@ -157,7 +157,7 @@ def remove_student():
     return jsonify({"code": 200, "msg": "学生删除成功！", "data": None})
 
 
-@teacher_bp.route("/get_s_interviews_history", methods=["POST"])
+@classes_bp.route("/get_s_interviews_history", methods=["POST"])
 @role_required(1)
 def get_s_interview_history():
     data = request.json or {}
@@ -195,7 +195,7 @@ def get_s_interview_history():
     )
 
 
-@teacher_bp.route("/get_student_interview", methods=["POST"])
+@classes_bp.route("/get_student_interview", methods=["POST"])
 @role_required(1)
 def get_student_interview():
     data = request.json or {}
@@ -230,7 +230,7 @@ def get_student_interview():
     return jsonify({"code": 200, "msg": "成功获取面试详情！", "data": detail})
 
 
-@teacher_bp.route("/submit_comment", methods=["POST"])
+@classes_bp.route("/submit_comment", methods=["POST"])
 @role_required(1)
 def submit_comment():
     data = request.json or {}
@@ -262,7 +262,7 @@ def submit_comment():
     return jsonify({"code": 200, "msg": "评论发布成功！", "data": None})
 
 
-@teacher_bp.route("/import_students", methods=["POST"])
+@classes_bp.route("/import_students", methods=["POST"])
 @role_required(1)
 def import_students():
     data = request.form or {}
@@ -306,7 +306,7 @@ def import_students():
             )
         else:
             return jsonify({"code": 200, "msg": "全部学生导入成功！", "data": None})
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         db.session.rollback()
         print(f"导入失败报错信息: {e}")
         return jsonify(

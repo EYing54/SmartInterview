@@ -11,7 +11,7 @@
         disabled
         style="opacity: 1; font-weight: bold; color: #409eff; cursor: default"
       >
-        智能面试系统
+        智能面试平台
       </el-menu-item>
 
       <el-menu-item index="/student/lobby">模拟面试</el-menu-item>

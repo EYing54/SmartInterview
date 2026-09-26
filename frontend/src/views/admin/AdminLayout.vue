@@ -20,7 +20,7 @@
           color: white;
         "
       >
-        智能面试系统
+        智能面试平台
       </el-menu-item>
 
       <el-menu-item index="/admin/question">题库管理</el-menu-item>

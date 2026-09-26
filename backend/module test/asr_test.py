@@ -12,7 +12,7 @@ load_dotenv()
 def test_qwen_asr_with_base64():
     # ================= 必须修改的配置 =================
     # 请替换为你本地真实存在的 webm 文件绝对路径
-    file_path = r"E:\music\Till the Sky Falls Down .m4a"
+    file_path = r"E:\Project\SmartInterview\test_exapmle\asr_tset_file\Till the Sky Falls Down .m4a"
     # ==================================================
 
     audio_mime_type = "audio/mp4"

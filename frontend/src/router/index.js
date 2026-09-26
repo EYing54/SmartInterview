@@ -4,7 +4,6 @@ import QuestionManage from "../views/admin/QuestionManage.vue";
 import AdminLayout from "../views/admin/AdminLayout.vue";
 import StudentLayout from "../views/student/StudentLayout.vue";
 import Lobby from "../views/student/Lobby.vue";
-import { patchProp } from "vue";
 import InterviewRoom from "../views/student/InterviewRoom.vue";
 import TeacherLayout from "../views/teacher/TeacherLayout.vue";
 import ClassesManagement from "../views/teacher/ClassesManagement.vue";
