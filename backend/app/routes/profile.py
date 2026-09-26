@@ -54,8 +54,9 @@ def upload_avatar():
     avatar_dir = current_app.config.get("AVATAR_MEDIA_DIR")
     if not avatar_dir:
         return jsonify({"code": 500, "msg": "服务器配置错误！", "data": None}), 500
-    os.makedirs(avatar_dir, exist_ok=True)
-    avatar_save_path = os.path.join(avatar_dir, modified_filename)
+    user_avatar_dir = os.path.join(avatar_dir, f"user_{current_user_id}")
+    os.makedirs(user_avatar_dir, exist_ok=True)
+    avatar_save_path = os.path.join(user_avatar_dir, modified_filename)
     avatar.save(avatar_save_path)
     user.avatar_path = modified_filename
     db.session.commit()
@@ -63,14 +64,17 @@ def upload_avatar():
 
 
 @profile_bp.route("/get_user_avatar/<filename>", methods=["GET"])
+@role_required(0, 1, 2)
 def get_user_avatar(filename):
+    current_user_id = g.current_user_id
     avatar_dir = current_app.config.get("AVATAR_MEDIA_DIR")
     if not avatar_dir:
         return jsonify({"code": 500, "msg": "服务器配置错误！", "data": None}), 500
-    full_path = os.path.join(avatar_dir, filename)
+    user_avatar_dir = os.path.join(avatar_dir, f"user_{current_user_id}")
+    full_path = os.path.join(user_avatar_dir, filename)
     if not os.path.exists(full_path):
         return jsonify({"code": 404, "msg": "头像文件不存在！", "data": None}), 404
-    return send_from_directory(avatar_dir, filename)
+    return send_from_directory(user_avatar_dir, filename)
 
 
 @profile_bp.route("/modify_post", methods=["POST"])

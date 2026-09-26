@@ -15,11 +15,9 @@ from sqlalchemy.orm.attributes import flag_modified
 def clean_dirty_interview():
     with scheduler.app.app_context():
         one_hour_ago = datetime.now() - timedelta(hours=1)
-
         deleted_count = InterviewRecord.query.filter(
             InterviewRecord.status == 0, InterviewRecord.create_time < one_hour_ago
         ).delete(synchronize_session=False)
-
         db.session.commit()
         print(f"[{datetime.now()}] 清理了{deleted_count}条数据！")
 
@@ -48,7 +46,7 @@ def process_single_question(interview_id, question_id):
     audio_filename = ""  # 这里拿到的是形录音文件的文件名
     user_answer_text = ""
 
-    # ---- 阶段一：只读阶段，快速获取题目内容和录音文件 URL ----
+    # ---- 阶段一：只读阶段，快速获取题目内容和录音文件 ----
     with scheduler.app.app_context():
         target_record = InterviewRecord.query.filter_by(
             interview_id=interview_id
@@ -57,13 +55,13 @@ def process_single_question(interview_id, question_id):
         if not target_record:
             print(f"未找到面试记录: {interview_id}")
             return
-
+        student_id = target_record.student_id
         question_list = target_record.question_record
 
         for q in question_list:
             if str(q.get("question_id")) == str(question_id):
                 current_question_text = q.get("question", "未知题目")
-                # 从数据库中取出前端路由视角的 URL 路径
+                # 从数据库中取出录音文件名
                 audio_filename = q.get("audio_path", "")
                 break
 
@@ -72,7 +70,7 @@ def process_single_question(interview_id, question_id):
         print(f"警告：单题 {question_id} 未找到录音 URL！")
         user_answer_text = "（系统提示：考生未录音或音频文件丢失）"
     else:
-        # ---- 阶段二：将虚拟 Web URL 还原为本地服务器硬盘的真实物理路径，并调用 ASR ----
+        # ---- 阶段二：根据录音文件名拼接真实物理路径，并调用 ASR ----
         try:
             # 从当前 Flask 应用的配置中，动态获取媒体根目录
             base_dir = scheduler.app.config.get("INTERVIEW_MEDIA_DIR")
@@ -82,7 +80,11 @@ def process_single_question(interview_id, question_id):
 
             # 还原物理路径
             real_audio_disk_path = os.path.join(
-                base_dir, f"interview_{interview_id}", "audio", audio_filename
+                base_dir,
+                f"user_{student_id}",
+                f"interview_{interview_id}",
+                "audio",
+                audio_filename,
             )
 
             file_path_obj = pathlib.Path(real_audio_disk_path)

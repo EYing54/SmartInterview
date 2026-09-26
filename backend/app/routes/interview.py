@@ -71,6 +71,7 @@ def create_interview():
 @interview_bp.route("/upload_answer", methods=["POST"])
 @role_required(0)
 def upload_answer():
+    current_user_id = g.current_user_id
     vaild_interview_id = request.form.get("interview_id")  # 从前端获取有效的面试id
     vaild_question_id = request.form.get("question_id")  # 从前端获取有效的题目id
     vaild_audio = request.files.get("audio")  # 从前端获取有效的音频文件
@@ -84,12 +85,13 @@ def upload_answer():
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     audio_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
     video_filename = f"{vaild_interview_id}_{vaild_question_id}_{time}.webm"
-    audio_save_dir = os.path.join(
-        interview_dir, f"interview_{vaild_interview_id}", "audio"
+    user_interview_dir = os.path.join(
+        interview_dir,
+        f"user_{current_user_id}",
+        f"interview_{vaild_interview_id}",
     )
-    video_save_dir = os.path.join(
-        interview_dir, f"interview_{vaild_interview_id}", "video"
-    )
+    audio_save_dir = os.path.join(user_interview_dir, "audio")
+    video_save_dir = os.path.join(user_interview_dir, "video")
     # 创建文件夹
     os.makedirs(audio_save_dir, exist_ok=True)
     os.makedirs(video_save_dir, exist_ok=True)
