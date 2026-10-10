@@ -79,7 +79,7 @@
     </div>
 
     <div v-else class="empty-state">
-      <el-empty description="👈 请在左侧选择一条历史记录查看雷达图及详情" />
+      <el-empty description="👈请在左侧选择一条历史记录查看雷达图及详情" />
     </div>
   </div>
 </template>

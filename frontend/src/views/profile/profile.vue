@@ -1,4 +1,7 @@
-<template></template>
+<template>
+  <p>{{ data?.nickname }}</p>
+  <!-- ?指如果data还没有值，就先不读取nickname -->
+</template>
 <script setup>
 import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
@@ -16,6 +19,7 @@ const loadUserProfile = async () => {
   try {
     const res = await getUserProfile();
     data.value = res.data.data;
+    console.log(data.value);
   } catch (error) {
     console.log("获取用户信息失败：", error);
     ElMessage.error("获取用户信息失败");

@@ -1,16 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/login.vue";
-import QuestionManage from "../views/admin/QuestionManage.vue";
 import AdminLayout from "../views/admin/AdminLayout.vue";
 import StudentLayout from "../views/student/StudentLayout.vue";
-import Lobby from "../views/student/Lobby.vue";
-import InterviewRoom from "../views/student/InterviewRoom.vue";
 import TeacherLayout from "../views/teacher/TeacherLayout.vue";
-import ClassesManagement from "../views/teacher/ClassesManagement.vue";
-import StudentsManagement from "../views/teacher/StudentsManagement.vue";
-import InterviewSHistory from "../views/teacher/InterviewSHistory.vue";
-import StudentManage from "../views/admin/StudentManage.vue";
-import TeacherManage from "../views/admin/TeacherManage.vue";
+
+/** @type {import('vue-router').RouteRecordRaw[]} */
 
 const routes = [
   {
@@ -28,10 +22,20 @@ const routes = [
     children: [
       {
         path: "question",
-        component: QuestionManage,
+        component: () => import("../views/admin/QuestionManage.vue"),
       },
-      { path: "student", component: StudentManage },
-      { path: "teacher", component: TeacherManage },
+      {
+        path: "student",
+        component: () => import("../views/admin/StudentManage.vue"),
+      },
+      {
+        path: "teacher",
+        component: () => import("../views/admin/TeacherManage.vue"),
+      },
+      {
+        path: "profile",
+        component: () => import("../views/profile/Profile.vue"),
+      },
     ],
   },
   {
@@ -41,15 +45,19 @@ const routes = [
     children: [
       {
         path: "lobby",
-        component: Lobby,
+        component: () => import("../views/student/Lobby.vue"),
       },
       {
         path: "interview_room",
-        component: InterviewRoom,
+        component: () => import("../views/student/InterviewRoom.vue"),
       },
       {
         path: "history",
         component: () => import("../views/student/InterviewHistory.vue"),
+      },
+      {
+        path: "profile",
+        component: () => import("../views/profile/Profile.vue"),
       },
     ],
   },
@@ -60,27 +68,33 @@ const routes = [
     children: [
       {
         path: "classes",
-        component: ClassesManagement,
+        component: () => import("../views/teacher/ClassesManagement.vue"),
       },
       {
         path: "students",
-        component: StudentsManagement,
+        component: () => import("../views/teacher/StudentsManagement.vue"),
       },
       {
         path: "students/student_interview_history",
-        component: InterviewSHistory,
+        component: () => import("../views/teacher/InterviewSHistory.vue"),
+      },
+      {
+        path: "profile",
+        component: () => import("../views/profile/Profile.vue"),
       },
     ],
   },
 ];
+
 const router = createRouter({
   history: createWebHistory(),
   routes: routes,
 });
 
-//路由守卫
+// 路由守卫
 router.beforeEach((to, from) => {
   const myToken = localStorage.getItem("token");
+
   if (to.path !== "/login" && !myToken) {
     return "/login";
   } else {
