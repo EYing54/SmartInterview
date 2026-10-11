@@ -9,13 +9,11 @@
         :ellipsis="false"
         class="nav-bar"
       >
-        <el-menu-item index="logo" disabled class="brand-item">
-          智能面试平台
-        </el-menu-item>
-
-        <el-menu-item index="/student/lobby"> 模拟面试 </el-menu-item>
-
-        <el-menu-item index="/student/resume"> 简历分析 </el-menu-item>
+        <el-menu-item index="logo" disabled class="brand-item"
+          >智能面试平台</el-menu-item
+        >
+        <el-menu-item index="/student/lobby">模拟面试</el-menu-item>
+        <el-menu-item index="/student/resume">简历分析</el-menu-item>
       </el-menu>
 
       <!-- 右侧用户入口 -->
