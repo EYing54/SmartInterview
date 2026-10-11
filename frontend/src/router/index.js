@@ -34,7 +34,7 @@ const routes = [
       },
       {
         path: "profile",
-        component: () => import("../views/profile/Profile.vue"),
+        component: () => import("../views/profile/UserProfile.vue"),
       },
     ],
   },
@@ -57,7 +57,7 @@ const routes = [
       },
       {
         path: "profile",
-        component: () => import("../views/profile/Profile.vue"),
+        component: () => import("../views/profile/UserProfile.vue"),
       },
     ],
   },
@@ -80,7 +80,7 @@ const routes = [
       },
       {
         path: "profile",
-        component: () => import("../views/profile/Profile.vue"),
+        component: () => import("../views/profile/UserProfile.vue"),
       },
     ],
   },
