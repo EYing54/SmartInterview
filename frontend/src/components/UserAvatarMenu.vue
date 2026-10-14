@@ -8,7 +8,8 @@
   >
     <div class="user-trigger">
       <div class="avatar-circle">
-        {{ displayName.charAt(0).toUpperCase() }}
+        <img v-if="avatarURL" :src="avatarURL" />
+        <span v-else>{{ displayName.charAt(0).toUpperCase() }}</span>
       </div>
 
       <span class="username">{{ displayName }}</span>
@@ -31,13 +32,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { User, SwitchButton } from "@element-plus/icons-vue";
-import { getUserProfile } from "../api/user";
+import { getUserProfile, getUserAvatar } from "../api/user";
+import { avatarVersion } from "../stores/avatar";
+
 //获取当前的路由
 const currentRoute = useRoute();
 const router = useRouter();
+//获取当前的客户端种类
+const goToProfile = () => {
+  const role = currentRoute.path.split("/")[1];
+  router.push(`/${role}/profile`);
+};
+
+const avatarURL = ref("");
+const loadAvatar = async () => {
+  const res = await getUserAvatar(); //获取用户头像
+  if (avatarURL.value) {
+    URL.revokeObjectURL(avatarURL.value);
+  }
+  avatarURL.value = URL.createObjectURL(res.data);
+};
 
 const displayName = ref("我的账户");
 //获取当前用户的信息
@@ -48,23 +65,32 @@ const loadUserInfo = async () => {
     if (user) {
       displayName.value = user.nickname || user.username || "我的账户";
     }
+    if (user.avatar_path) {
+      await loadAvatar();
+    }
   } catch (error) {
     console.error("获取用户信息失败：", error);
   }
 };
 
-onMounted(loadUserInfo);
-//获取当前的客户端种类
-const goToProfile = () => {
-  const role = currentRoute.path.split("/")[1];
-  router.push(`/${role}/profile`);
-};
+watch(avatarVersion, () => {
+  //watch()用来监听响应式变量的更新
+  loadAvatar(); //若变量更新则重新加载头像
+});
+
 //退出登录
 const handleLogout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("role");
   router.push("/login");
 };
+
+onMounted(loadUserInfo);
+onUnmounted(() => {
+  if (avatarURL.value) {
+    URL.revokeObjectURL(avatarURL.value);
+  }
+});
 </script>
 
 <style>
@@ -123,6 +149,13 @@ const handleLogout = () => {
   color: #2878d7;
   font-size: 14px;
   font-weight: 600;
+  overflow: hidden;
+}
+
+.user-dropdown .avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* 用户名 */
