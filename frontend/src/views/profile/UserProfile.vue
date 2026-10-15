@@ -15,15 +15,19 @@
               type="file"
               @change="handleAvatarChange"
             />
-            <label for="avatar_upload" class="upload_button"> 更换头像 </label>
+            <label for="avatar_upload" class="upload_button">更换头像</label>
           </div>
         </div>
       </el-card>
 
       <el-card class="right_card_2">
         <h3>账号信息</h3>
-        <p>用户名：{{ data?.username }}</p>
         <p>昵称：{{ data?.nickname }}</p>
+        <input type="text" v-model="newNickname" />
+        <el-button @click="uploadNickname" type="primary">保存</el-button>
+        <p v-if="newNickname.length > 20">昵称字数超过20辣！</p>
+        <p v-else-if="newNickname.length > 0">昵称可用</p>
+        <p>用户名：{{ data?.username }}</p>
       </el-card>
     </div>
   </div>
@@ -89,6 +93,28 @@ const handleAvatarChange = async (event) => {
   } catch (error) {
     ElMessage.error("头像上传失败！");
     console.log(error);
+  }
+};
+
+const newNickname = ref("");
+const uploadNickname = async () => {
+  try {
+    if (newNickname.value.length > 20) {
+      ElMessage.error("昵称修改失败！");
+      return;
+    }
+    if (newNickname.value.length == 0) {
+      ElMessage.error("昵称不能为空！");
+      return;
+    }
+    const res = await modifyNickname(newNickname.value);
+    console.log(res.data.msg);
+    avatarVersion.value++;
+    await loadUserProfile();
+    ElMessage.success("昵称修改成功！");
+  } catch (error) {
+    console.log(error);
+    ElMessage.error("昵称修改失败！");
   }
 };
 

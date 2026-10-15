@@ -76,6 +76,7 @@ const loadUserInfo = async () => {
 watch(avatarVersion, () => {
   //watch()用来监听响应式变量的更新
   loadAvatar(); //若变量更新则重新加载头像
+  loadUserInfo();
 });
 
 //退出登录
