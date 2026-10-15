@@ -36,7 +36,7 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { User, SwitchButton } from "@element-plus/icons-vue";
 import { getUserProfile, getUserAvatar } from "../api/user";
-import { avatarVersion } from "../stores/avatar";
+import { profileVersion } from "../stores/avatar";
 
 //获取当前的路由
 const currentRoute = useRoute();
@@ -73,7 +73,7 @@ const loadUserInfo = async () => {
   }
 };
 
-watch(avatarVersion, () => {
+watch(profileVersion, () => {
   //watch()用来监听响应式变量的更新
   loadAvatar(); //若变量更新则重新加载头像
   loadUserInfo();

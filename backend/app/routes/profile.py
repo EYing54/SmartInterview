@@ -23,6 +23,7 @@ def get_user_profile():
         "real_name": user_info.real_name,
         "post": user_info.post,
         "avatar_path": user_info.avatar_path,
+        "password": user_info.password,
     }
     return jsonify({"code": 200, "msg": "获取用户信息成功！", "data": target_info})
 

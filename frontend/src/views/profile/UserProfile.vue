@@ -23,11 +23,25 @@
       <el-card class="right_card_2">
         <h3>账号信息</h3>
         <p>昵称：{{ data?.nickname }}</p>
-        <input type="text" v-model="newNickname" />
-        <el-button @click="uploadNickname" type="primary">保存</el-button>
+        <p>
+          新昵称：<input type="text" v-model="newNickname" /><el-button
+            @click="uploadNickname"
+            type="primary"
+            >保存</el-button
+          >
+        </p>
         <p v-if="newNickname.length > 20">昵称字数超过20辣！</p>
         <p v-else-if="newNickname.length > 0">昵称可用</p>
+        <p v-else-if="newNickname.length == 0">请输入新名称</p>
         <p>用户名：{{ data?.username }}</p>
+        <p>当前密码：<input type="password" v-model="currentPassword" /></p>
+        <p>新密码：<input type="password" v-model="newPassword" /></p>
+        <p>
+          确认密码：<input type="password" v-model="verifyPassword" />
+          <el-button @click="handelModifyPassword" type="primary"
+            >确认修改</el-button
+          >
+        </p>
       </el-card>
     </div>
   </div>
@@ -43,10 +57,10 @@ import {
   modifyPassword,
   modifyNickname,
 } from "../../api/user";
-import { avatarVersion } from "../../stores/avatar";
+import { profileVersion } from "../../stores/avatar";
 
-const data = ref(null);
 //获取用户信息
+const data = ref(null);
 const loadUserProfile = async () => {
   try {
     const res = await getUserProfile();
@@ -62,6 +76,7 @@ const loadUserProfile = async () => {
   }
 };
 
+//获取头像
 const url = ref("");
 const getAvatarURL = async () => {
   try {
@@ -76,6 +91,7 @@ const getAvatarURL = async () => {
   }
 };
 
+//修改头像
 const handleAvatarChange = async (event) => {
   //event用来接收change事件
   const avatarFile = event.target.files[0]; //从change是事件中拿到用户上传的头像文件
@@ -88,7 +104,7 @@ const handleAvatarChange = async (event) => {
     const res = await uploadAvatar(avatarFile);
     console.log(res.data.msg);
     ElMessage.success("头像上传成功！");
-    avatarVersion.value++; //若上传头像则更新响应式变量
+    profileVersion.value++; //若上传头像则更新响应式变量
     await loadUserProfile(); //自动刷新以展示新的头像
   } catch (error) {
     ElMessage.error("头像上传失败！");
@@ -96,6 +112,7 @@ const handleAvatarChange = async (event) => {
   }
 };
 
+//修改昵称
 const newNickname = ref("");
 const uploadNickname = async () => {
   try {
@@ -107,14 +124,40 @@ const uploadNickname = async () => {
       ElMessage.error("昵称不能为空！");
       return;
     }
+    if (newNickname.value == data.value) {
+      ElMessage.error("新昵称与旧昵称相同！");
+    }
     const res = await modifyNickname(newNickname.value);
     console.log(res.data.msg);
-    avatarVersion.value++;
+    profileVersion.value++;
     await loadUserProfile();
     ElMessage.success("昵称修改成功！");
   } catch (error) {
     console.log(error);
     ElMessage.error("昵称修改失败！");
+  }
+};
+
+//修改密码
+const currentPassword = ref("");
+const newPassword = ref("");
+const verifyPassword = ref("");
+const handelModifyPassword = async () => {
+  try {
+    if (newPassword.value !== verifyPassword.value) {
+      ElMessage.error("两次密码不一致");
+      return;
+    }
+    const res = await modifyPassword(
+      currentPassword.value,
+      verifyPassword.value,
+    );
+    console.log(res.data.msg);
+    ElMessage.success("密码修改成功！");
+  } catch (error) {
+    console.log(error);
+    console.log(error.response?.data?.msg);
+    ElMessage.error(error.response?.data?.msg || "密码修改失败！");
   }
 };
 
