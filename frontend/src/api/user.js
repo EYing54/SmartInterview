@@ -20,6 +20,10 @@ export const getUserAvatar = () => {
   });
 };
 
+export const getJobPositions = () => {
+  return request.post("/get_job_positions");
+};
+
 export const modifyPost = (new_post) => {
   return request.post("/modify_post", { new_post: new_post });
 };

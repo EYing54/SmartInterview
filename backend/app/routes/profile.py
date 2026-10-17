@@ -1,6 +1,7 @@
 import datetime
 import os
 
+from app.models.job_position import JobPosition
 from app.models.user import User
 from app.utils.auth import role_required
 from app.utils.encrypt import encrypt_password
@@ -23,7 +24,6 @@ def get_user_profile():
         "real_name": user_info.real_name,
         "post": user_info.post,
         "avatar_path": user_info.avatar_path,
-        "password": user_info.password,
     }
     return jsonify({"code": 200, "msg": "获取用户信息成功！", "data": target_info})
 
@@ -78,6 +78,17 @@ def get_user_avatar():
     return send_from_directory(user_avatar_dir, user.avatar_path)
 
 
+@profile_bp.route("/get_job_positions", methods=["POST"])
+@role_required(0)
+def get_job_positions():
+    job_positions = JobPosition.query.filter_by(is_enabled=1).all()
+    job_names = []
+    for i in job_positions:
+        name = i.job_name
+        job_names.append(name)
+    return jsonify({"code": 200, "msg": "获取岗位数据成功！", "data": job_names})
+
+
 @profile_bp.route("/modify_post", methods=["POST"])
 @role_required(0)
 def modify_post():
@@ -88,6 +99,9 @@ def modify_post():
         return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
     if len(new_post) > 30:
         return jsonify({"code": 400, "msg": "字符串长度过长！", "data": None}), 400
+    job = JobPosition.query.filter_by(job_name=new_post, is_enabled=1).first()
+    if not job:
+        return jsonify({"code": 400, "msg": "岗位未找到！", "data": None}), 400
     current_user_id = g.current_user_id
     user_info = User.query.filter_by(user_id=current_user_id).first()
     if not user_info:

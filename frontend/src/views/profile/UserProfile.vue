@@ -61,6 +61,7 @@ import {
   getUserProfile,
   uploadAvatar,
   getUserAvatar,
+  getJobPositons,
   modifyPost,
   modifyPassword,
   modifyNickname,
