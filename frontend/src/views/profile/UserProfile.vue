@@ -32,16 +32,24 @@
         </p>
         <p v-if="newNickname.length > 20">昵称字数超过20辣！</p>
         <p v-else-if="newNickname.length > 0">昵称可用</p>
-        <p v-else-if="newNickname.length == 0">请输入新名称</p>
+        <p v-else-if="newNickname.length == 0">请输入新昵称</p>
         <p>用户名：{{ data?.username }}</p>
         <p>当前密码：<input type="password" v-model="currentPassword" /></p>
         <p>新密码：<input type="password" v-model="newPassword" /></p>
+        <p v-if="newPassword.length > 50">密码长度超过50辣！</p>
+        <p v-else-if="newPassword.length > 0">密码可用</p>
+        <p v-else-if="newPassword.length == 0">请输入密码</p>
         <p>
           确认密码：<input type="password" v-model="verifyPassword" />
           <el-button @click="handelModifyPassword" type="primary"
             >确认修改</el-button
           >
         </p>
+        <p v-if="verifyPassword.length === 0">请再次输入密码</p>
+        <p v-else-if="newPassword !== verifyPassword">
+          两次输入的密码不一致哦！
+        </p>
+        <p v-else-if="newPassword === verifyPassword">恭喜！你终于输对了！</p>
       </el-card>
     </div>
   </div>
@@ -148,10 +156,19 @@ const handelModifyPassword = async () => {
       ElMessage.error("两次密码不一致");
       return;
     }
-    const res = await modifyPassword(
-      currentPassword.value,
-      verifyPassword.value,
-    );
+    if (newPassword.value.length > 50) {
+      ElMessage.error("密码长度超过50辣！");
+      return;
+    }
+    if (
+      currentPassword.value.length === 0 ||
+      newPassword.value.length === 0 ||
+      verifyPassword.value.length === 0
+    ) {
+      ElMessage.error("请完整填写密码信息！");
+      return;
+    }
+    const res = await modifyPassword(currentPassword.value, newPassword.value);
     console.log(res.data.msg);
     ElMessage.success("密码修改成功！");
   } catch (error) {
