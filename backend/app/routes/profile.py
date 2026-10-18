@@ -11,6 +11,7 @@ from flask import Blueprint, current_app, g, jsonify, request, send_from_directo
 profile_bp = Blueprint("profile", __name__)
 
 
+# 获取用户的个人信息
 @profile_bp.route("/get_user_profile", methods=["POST"])
 @role_required(0, 1, 2)
 def get_user_profile():
@@ -28,6 +29,7 @@ def get_user_profile():
     return jsonify({"code": 200, "msg": "获取用户信息成功！", "data": target_info})
 
 
+# 上传用户的头像
 @profile_bp.route("/upload_avatar", methods=["POST"])
 @role_required(0, 1, 2)
 def upload_avatar():
@@ -64,6 +66,7 @@ def upload_avatar():
     return jsonify({"code": 200, "msg": "头像已储存！", "data": None})
 
 
+# 获取用户的头像
 @profile_bp.route("/get_user_avatar", methods=["GET"])
 @role_required(0, 1, 2)
 def get_user_avatar():
@@ -78,6 +81,7 @@ def get_user_avatar():
     return send_from_directory(user_avatar_dir, user.avatar_path)
 
 
+# 获取当前可用的所有的岗位
 @profile_bp.route("/get_job_positions", methods=["POST"])
 @role_required(0)
 def get_job_positions():
@@ -89,6 +93,7 @@ def get_job_positions():
     return jsonify({"code": 200, "msg": "获取岗位数据成功！", "data": job_names})
 
 
+# 修改意向岗位
 @profile_bp.route("/modify_post", methods=["POST"])
 @role_required(0)
 def modify_post():
@@ -111,6 +116,7 @@ def modify_post():
     return jsonify({"code": 200, "msg": "意向岗位修改成功！", "data": None})
 
 
+# 修改昵称
 @profile_bp.route("/modify_nickname", methods=["POST"])
 @role_required(0, 1, 2)
 def modify_nickname():
@@ -132,6 +138,7 @@ def modify_nickname():
     return jsonify({"code": 200, "msg": "昵称修改成功！", "data": None})
 
 
+# 修改密码
 @profile_bp.route("/modify_password", methods=["POST"])
 @role_required(0, 1, 2)
 def modify_password():

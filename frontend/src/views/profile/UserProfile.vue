@@ -42,7 +42,7 @@
         <p>
           确认密码：<input type="password" v-model="verifyPassword" />
           <el-button @click="handelModifyPassword" type="primary"
-            >确认修改</el-button
+            >保存</el-button
           >
         </p>
         <p v-if="verifyPassword.length === 0">请再次输入密码</p>
@@ -50,6 +50,20 @@
           两次输入的密码不一致哦！
         </p>
         <p v-else-if="newPassword === verifyPassword">恭喜！你终于输对了！</p>
+      </el-card>
+      <el-card>
+        <h3>意向岗位</h3>
+        <p>当前岗位：{{ data?.post }}</p>
+        <p>修改岗位：</p>
+        <el-select v-model="selectedPost" placeholder="请选择你的意向岗位">
+          <el-option
+            v-for="name in jobPositions"
+            :key="name"
+            :label="name"
+            :value="name"
+          />
+        </el-select>
+        <el-button @click="handelModifyPost" type="primary">保存</el-button>
       </el-card>
     </div>
   </div>
@@ -61,7 +75,7 @@ import {
   getUserProfile,
   uploadAvatar,
   getUserAvatar,
-  getJobPositons,
+  getJobPositions,
   modifyPost,
   modifyPassword,
   modifyNickname,
@@ -179,8 +193,38 @@ const handelModifyPassword = async () => {
   }
 };
 
+//获取所有可用的岗位名称
+const selectedPost = ref("");
+const jobPositions = ref([]);
+const loadPositions = async () => {
+  const res = await getJobPositions();
+  jobPositions.value = res.data.data;
+};
+
+//修改意向岗位
+const handelModifyPost = async () => {
+  try {
+    if (!selectedPost.value) {
+      ElMessage.error("请选择意向岗位！");
+      return;
+    }
+    if (selectedPost.value === data.value.post) {
+      ElMessage.error("不要重复选择哦！");
+      return;
+    }
+    const res = await modifyPost(selectedPost.value);
+    console.log(res.data.msg);
+    ElMessage.success("意向岗位修改成功！");
+    await loadUserProfile();
+  } catch (error) {
+    console.log(error);
+    ElMessage.error(error.response?.data?.msg || "意向岗位修改失败！");
+  }
+};
+
 onMounted(() => {
   loadUserProfile();
+  loadPositions();
 });
 
 onUnmounted(() => {

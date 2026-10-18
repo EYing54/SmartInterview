@@ -11,6 +11,7 @@ from flask import Blueprint, g, jsonify, request
 classes_bp = Blueprint("classes", __name__)
 
 
+# 创建新的班级
 @classes_bp.route("/create_class", methods=["POST"])
 @role_required(1)
 def add_class():
@@ -41,6 +42,7 @@ def add_class():
     return jsonify({"code": 200, "msg": "创建班级成功！", "data": None})
 
 
+# 更新（修改）班级的名称、介绍
 @classes_bp.route("/update_class_information", methods=["POST"])
 @role_required(1)
 def update_class_information():
@@ -91,6 +93,7 @@ def my_classes():
     return jsonify({"code": 200, "msg": "成功查询到班级！", "data": classes_list})
 
 
+# 查询当前班级内的所有学生
 @classes_bp.route("/query_class_students", methods=["POST"])
 @role_required(1)
 def class_students():
@@ -117,6 +120,7 @@ def class_students():
     )
 
 
+# 删除班级
 @classes_bp.route("/delete_class", methods=["POST"])
 @role_required(1)
 def delete_class():
@@ -135,6 +139,7 @@ def delete_class():
     return jsonify({"code": 200, "msg": "班级已删除！", "data": None})
 
 
+# 从班级中移除学生
 @classes_bp.route("/remove_student", methods=["POST"])
 @role_required(1)
 def remove_student():
@@ -157,6 +162,7 @@ def remove_student():
     return jsonify({"code": 200, "msg": "学生删除成功！", "data": None})
 
 
+# 获取学生的面试记录
 @classes_bp.route("/get_s_interviews_history", methods=["POST"])
 @role_required(1)
 def get_s_interview_history():
@@ -195,6 +201,7 @@ def get_s_interview_history():
     )
 
 
+# 获取学生面试记录的详细信息
 @classes_bp.route("/get_student_interview", methods=["POST"])
 @role_required(1)
 def get_student_interview():
@@ -230,6 +237,7 @@ def get_student_interview():
     return jsonify({"code": 200, "msg": "成功获取面试详情！", "data": detail})
 
 
+# 对学生的面试做出评价
 @classes_bp.route("/submit_comment", methods=["POST"])
 @role_required(1)
 def submit_comment():
@@ -262,6 +270,7 @@ def submit_comment():
     return jsonify({"code": 200, "msg": "评论发布成功！", "data": None})
 
 
+# 通过excel批量导入学生
 @classes_bp.route("/import_students", methods=["POST"])
 @role_required(1)
 def import_students():
