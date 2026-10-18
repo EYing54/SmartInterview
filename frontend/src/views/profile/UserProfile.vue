@@ -1,8 +1,21 @@
 <template>
   <div class="profile_layout">
-    <el-card class="left_card">左侧导航栏</el-card>
-    <div class="right_container">
-      <el-card class="right_card_1">
+    <el-card class="left_card">
+      <h3>个人中心</h3>
+      <div class="nav_list">
+        <button @click="scrollToSection('avatar')">我的头像</button>
+        <button @click="scrollToSection('name')">我的姓名</button>
+        <button @click="scrollToSection('nickname')">我的昵称</button>
+        <button @click="scrollToSection('password')">修改密码</button>
+        <button v-if="isStudent" @click="scrollToSection('post')">
+          意向岗位
+        </button>
+      </div>
+    </el-card>
+
+    <div ref="scrollContainer" class="right_container">
+      <el-card id="avatar" class="setting_card">
+        <h3>我的头像</h3>
         <div class="avatar_content">
           <el-avatar :size="80" :src="url">头像</el-avatar>
           <div class="avatar_details">
@@ -20,25 +33,31 @@
         </div>
       </el-card>
 
-      <el-card class="right_card_2">
-        <h3>账号信息</h3>
-        <p>昵称：{{ data?.nickname }}</p>
+      <el-card id="name" class="setting_card">
+        <h3>我的姓名</h3>
+        <p>姓名：{{ data?.real_name }}</p>
+        <p>用户名：{{ data?.username }}</p>
+      </el-card>
+
+      <el-card id="nickname" class="setting_card">
+        <h3>我的昵称</h3>
+        <p>当前昵称：{{ data?.nickname }}</p>
         <p>
-          新昵称：<input type="text" v-model="newNickname" /><el-button
-            @click="uploadNickname"
-            type="primary"
-            >保存</el-button
-          >
+          新昵称：<input type="text" v-model="newNickname" />
+          <el-button @click="uploadNickname" type="primary">保存</el-button>
         </p>
         <p v-if="newNickname.length > 20">昵称字数超过20辣！</p>
         <p v-else-if="newNickname.length > 0">昵称可用</p>
-        <p v-else-if="newNickname.length == 0">请输入新昵称</p>
-        <p>用户名：{{ data?.username }}</p>
+        <p v-else>请输入新昵称</p>
+      </el-card>
+
+      <el-card id="password" class="setting_card">
+        <h3>修改密码</h3>
         <p>当前密码：<input type="password" v-model="currentPassword" /></p>
         <p>新密码：<input type="password" v-model="newPassword" /></p>
         <p v-if="newPassword.length > 50">密码长度超过50辣！</p>
         <p v-else-if="newPassword.length > 0">密码可用</p>
-        <p v-else-if="newPassword.length == 0">请输入密码</p>
+        <p v-else>请输入密码</p>
         <p>
           确认密码：<input type="password" v-model="verifyPassword" />
           <el-button @click="handelModifyPassword" type="primary"
@@ -49,9 +68,10 @@
         <p v-else-if="newPassword !== verifyPassword">
           两次输入的密码不一致哦！
         </p>
-        <p v-else-if="newPassword === verifyPassword">恭喜！你终于输对了！</p>
+        <p v-else>恭喜！你终于输对了！</p>
       </el-card>
-      <el-card>
+
+      <el-card v-if="isStudent" id="post" class="setting_card">
         <h3>意向岗位</h3>
         <p>当前岗位：{{ data?.post }}</p>
         <p>修改岗位：</p>
@@ -68,6 +88,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
@@ -81,6 +102,22 @@ import {
   modifyNickname,
 } from "../../api/user";
 import { profileVersion } from "../../stores/avatar";
+
+const isStudent = ref(localStorage.getItem("role") === "0");
+const scrollContainer = ref(null);
+const scrollToSection = (id) => {
+  const container = scrollContainer.value;
+  const target = container.querySelector(`#${id}`);
+  if (!target) return;
+  const top =
+    target.getBoundingClientRect().top -
+    container.getBoundingClientRect().top +
+    container.scrollTop;
+  container.scrollTo({
+    top: top,
+    behavior: "smooth",
+  });
+};
 
 //获取用户信息
 const data = ref(null);
@@ -224,7 +261,9 @@ const handelModifyPost = async () => {
 
 onMounted(() => {
   loadUserProfile();
-  loadPositions();
+  if (isStudent.value) {
+    loadPositions(); //只有学生端需要获取岗位列表。
+  }
 });
 
 onUnmounted(() => {
@@ -235,23 +274,100 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 整体布局 */
 .profile_layout {
   display: flex;
-  gap: 5px;
+  gap: 16px;
+  height: calc(100vh - 100px);
+  overflow: hidden;
 }
 
+/* 左侧导航栏 */
 .left_card {
   width: 220px;
+  flex-shrink: 0;
+  border-radius: 10px;
 }
 
-.right_container {
-  flex: 1;
+.left_card h3 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+/* 导航项目 */
+.nav_list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 12px;
 }
 
-/* 头像和右侧信息横向排列 */
+.nav_list button {
+  position: relative;
+  padding: 15px;
+  border: none;
+  background: transparent;
+  color: #606266;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* 导航下方蓝线 */
+.nav_list button::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 20%;
+  width: 60%;
+  height: 2px;
+  background: #409eff;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav_list button:hover {
+  color: #409eff;
+}
+
+.nav_list button:hover::after {
+  transform: scaleX(1);
+}
+
+/* 右侧滚动区域 */
+.right_container {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* 设置卡片 */
+.setting_card {
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.setting_card h3 {
+  margin-top: 0;
+  padding-left: 10px;
+  border-left: 3px solid #409eff;
+}
+
+/* 输入框 */
+.setting_card input:not([type="file"]) {
+  padding: 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 5px;
+}
+
+.setting_card :deep(.el-button) {
+  margin-left: 10px;
+}
+
+/* 头像布局：保留原来的样式 */
 .avatar_content {
   display: flex;
   align-items: center;
@@ -259,12 +375,10 @@ onUnmounted(() => {
   padding: 12px 4px;
 }
 
-/* 头像保持原有尺寸 */
 .avatar_content .el-avatar {
   flex-shrink: 0;
 }
 
-/* 右侧文字和按钮纵向排列 */
 .avatar_details {
   display: flex;
   flex-direction: column;
@@ -284,12 +398,10 @@ onUnmounted(() => {
   color: #909399;
 }
 
-/* 隐藏原生文件选择框 */
 #avatar_upload {
   display: none;
 }
 
-/* 自定义更换头像按钮 */
 .upload_button {
   display: inline-flex;
   align-items: center;
