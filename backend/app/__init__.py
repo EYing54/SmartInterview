@@ -8,6 +8,7 @@ from app.routes.classes import classes_bp
 from app.routes.interview import interview_bp
 from app.routes.profile import profile_bp
 from app.routes.question import question_bp
+from app.routes.tag import tag_bp
 
 
 def create_app():
@@ -31,5 +32,6 @@ def create_app():
     app.register_blueprint(classes_bp)
     app.register_blueprint(account_bp)
     app.register_blueprint(profile_bp)
+    app.register_blueprint(tag_bp)
 
     return app

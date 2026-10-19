@@ -1,7 +1,7 @@
 import request from "../utils/request";
 
 export const getQuestionList = (page, size) => {
-  return request.post("/query_question", {
+  return request.post("/get_questions", {
     page: page,
     size: size,
   });

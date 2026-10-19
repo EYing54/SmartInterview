@@ -40,12 +40,14 @@ def upload_avatar():
     avatar = request.files.get("avatar")
     if not avatar:
         return jsonify({"code": 400, "msg": "未获取到图片！", "data": None}), 400
-    filename = avatar.filename
-    filename_split = os.path.splitext(filename)
-    filename_extension = str(filename_split[1]).lower()
+    filename = avatar.filename  # 从avatar对象中直接获取文件名称
+    filename_split = os.path.splitext(filename)  # 文件名切片
+    filename_extension = str(
+        filename_split[1]
+    ).lower()  # 从切好的文件名中获取到扩展名并统一成小写
     safety_extensions = [".png", ".jpg", ".jpeg", ".webp"]
     num = 0
-    for i in safety_extensions:
+    for i in safety_extensions:  # 判断上传至服务器的文件是否是合法的扩展名
         if i != filename_extension:
             num = num + 1
         elif i == filename_extension:
@@ -53,15 +55,21 @@ def upload_avatar():
         if num == 4:
             return jsonify({"code": 400, "msg": "图片格式错误！", "data": None}), 400
     time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    modified_filename = f"{current_user_id}_{time}{filename_extension}"
-    avatar_dir = current_app.config.get("AVATAR_MEDIA_DIR")
+    modified_filename = (
+        f"{current_user_id}_{time}{filename_extension}"  # 重新给文件命名
+    )
+    avatar_dir = current_app.config.get(
+        "AVATAR_MEDIA_DIR"
+    )  # 获取服务器中存储头像的文件夹
     if not avatar_dir:
         return jsonify({"code": 500, "msg": "服务器配置错误！", "data": None}), 500
     user_avatar_dir = os.path.join(avatar_dir, f"user_{current_user_id}")
-    os.makedirs(user_avatar_dir, exist_ok=True)
-    avatar_save_path = os.path.join(user_avatar_dir, modified_filename)
-    avatar.save(avatar_save_path)
-    user.avatar_path = modified_filename
+    os.makedirs(user_avatar_dir, exist_ok=True)  # 创建用户专属的文件夹
+    avatar_save_path = os.path.join(
+        user_avatar_dir, modified_filename
+    )  # 拼接头像的存储路径
+    avatar.save(avatar_save_path)  # 保存头像至文件夹
+    user.avatar_path = modified_filename  # 修改数据可的相关属性
     db.session.commit()
     return jsonify({"code": 200, "msg": "头像已储存！", "data": None})
 

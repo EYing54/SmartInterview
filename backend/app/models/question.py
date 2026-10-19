@@ -17,6 +17,7 @@ class TagPool(db.Model):
     __tablename__ = "tag_pool"
     tag_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tag_name = db.Column(db.String(20), nullable=False)
+    is_deleted = db.Column(TINYINT, nullable=False, default=0)
     create_time = db.Column(db.DateTime, nullable=False)
 
 
