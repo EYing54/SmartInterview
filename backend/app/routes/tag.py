@@ -32,3 +32,43 @@ def add_tag():
     db.session.add(new_tag)
     db.session.commit()
     return jsonify({"code": 200, "msg": "标签添加成功！", "data": None})
+
+
+@tag_bp.route("/modify_tag_name", methods=["POST"])
+@role_required(2)
+def modify_tag_name():
+    data = request.json or {}
+    tag_id = data.get("tag_id", "")
+    new_tag_name = data.get("new_tag_name", "").strip()
+    if not tag_id or not new_tag_name:
+        return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
+    tag_object = TagPool.query.filter_by(is_deleted=0, tag_id=tag_id).first()
+    if not tag_object:
+        return jsonify({"code": 404, "msg": "未找到相关标签！", "data": None}), 404
+    if TagPool.query.filter(
+        TagPool.tag_name == new_tag_name,
+        TagPool.is_deleted == 0,
+        TagPool.tag_id != tag_object.tag_id,
+    ).first():  # 判断修改后的标签是否与已有标签重名
+        return jsonify({"code": 409, "msg": "该标签已存在！", "data": None}), 409
+    tag_object.tag_name = new_tag_name
+    db.session.commit()
+    return jsonify({"code": 200, "msg": "标签修改成功！", "data": None})
+
+
+@tag_bp.route("/delete_tag", methods=["POST"])
+@role_required(2)
+def delete_tag_name():
+    data = request.json or {}
+    tag_id = data.get("tag_id", "")
+    target_tag_name = data.get("target_tag_name", "").strip()
+    if not tag_id or not target_tag_name:
+        return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
+    tag_object = TagPool.query.filter_by(
+        is_deleted=0, tag_id=tag_id, tag_name=target_tag_name
+    ).first()
+    if not tag_object:
+        return jsonify({"code": 404, "msg": "未找到相关标签！", "data": None}), 404
+    tag_object.is_deleted = 1
+    db.session.commit()
+    return jsonify({"code": 200, "msg": "标签删除成功！", "data": None})
