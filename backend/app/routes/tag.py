@@ -66,9 +66,27 @@ def delete_tag_name():
         return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
     tag_object = TagPool.query.filter_by(
         is_deleted=0, tag_id=tag_id, tag_name=target_tag_name
-    ).first()
+    ).first()  # 删除标签的时候经行id和name的双重验证
     if not tag_object:
         return jsonify({"code": 404, "msg": "未找到相关标签！", "data": None}), 404
     tag_object.is_deleted = 1
     db.session.commit()
     return jsonify({"code": 200, "msg": "标签删除成功！", "data": None})
+
+
+@tag_bp.route("/search_tags", methods=["POST"])
+@role_required(2)
+def query_tag():
+    data = request.json or {}
+    keyword = data.get("keyword", "").strip()
+    if not keyword:
+        return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
+    result = TagPool.query.filter(
+        TagPool.tag_name.like(f"%{keyword}%"), TagPool.is_deleted == 0
+    ).all()  # SQLAlchemy的模糊搜索"like("%name%")"
+    if not result:
+        return jsonify({"code": 404, "msg": "未查询到结果！", "data": None}), 404
+    tags_list = []
+    for i in result:
+        tags_list.append({"tag_id": i.tag_id, "tag_name": i.tag_name})
+    return jsonify({"code": 200, "msg": "查询完成！", "data": tags_list})
