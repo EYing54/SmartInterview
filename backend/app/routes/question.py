@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from app.models.question import QuestionBank
+from app.models.question import QuestionBank, QuestionTagRelation, TagPool
 from app.utils.auth import role_required
 from extensions import db
 from flask import Blueprint, jsonify, request
+from sqlalchemy.exc import SQLAlchemyError
 
 question_bp = Blueprint("question", __name__)
 
@@ -35,6 +36,58 @@ def get_questions():
             "data": {"total": pagination.total, "list": result_list},
         }
     )  # 返回json数据至前端
+
+
+@question_bp.route("/add_questions", methods=["POST"])
+@role_required(2)
+def add_question():
+    data = request.json or {}
+    if not data:
+        return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
+    # 对question和answer都进行字符串的判断
+    question = data.get("question", "")
+    answer = data.get("answer", "")
+    if not isinstance(question, str) or not isinstance(answer, str):
+        return jsonify(
+            {"code": 400, "msg": "题目和答案必须是字符串！", "data": None}
+        ), 400
+    question = question.strip()
+    answer = answer.strip()
+    question_tags = data.get("tag_ids", [])
+    # 对question_tags进行数据类型的判断，排除非list以及int类型的数据
+    if not isinstance(question_tags, list):  # 判断question_tags的数据类型是否为list
+        return jsonify({"code": 400, "msg": "标签数据必须是列表！", "data": None}), 400
+    for i in question_tags:
+        if not isinstance(i, int) or isinstance(i, bool):  # bool值也属于int类型
+            return jsonify(
+                {"code": 400, "msg": "标签数据类型错误！", "data": None}
+            ), 400
+    if not question or not answer or not question_tags:
+        return jsonify({"code": 400, "msg": "缺少必需数据！", "data": None}), 400
+    # 对复杂的数据操作进行异常处理
+    try:
+        new_question = QuestionBank(
+            question=question, answer=answer, create_time=datetime.now()
+        )
+        db.session.add(new_question)
+        db.session.flush()  # 把待处理操作,即add(new_question)发送到数据库，但不提交事务。
+        question_id = new_question.question_id
+        for i in set(question_tags):
+            if not TagPool.query.filter_by(tag_id=i, is_deleted=0).first():
+                db.session.rollback()  # 若遇到数据库没有标签id则进行事务回滚，撤回add()
+                return jsonify(
+                    {"code": 404, "msg": "未找到相关标签！", "data": None}
+                ), 404  # 拦截数据库没有的标签
+            new_relation = QuestionTagRelation(
+                tag_id=i, question_id=question_id, create_time=datetime.now()
+            )
+            db.session.add(new_relation)
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()  # 出现异常后进行回滚
+        return jsonify({"code": 500, "msg": "数据库操作失败！", "data": None}), 500
+
+    return jsonify({"code": 200, "msg": "题目添加成功！", "data": None})
 
 
 @question_bp.route("/delete_question", methods=["POST"])
