@@ -1,6 +1,5 @@
-# python mock.py           仅创建缺失的表并补充岗位数据
+# python mock.py           创建缺失的表、补充岗位数据、同步标签池字段
 # python mock.py --reset   清空相关测试表，重新生成整套测试数据
-
 
 import argparse
 import random
@@ -19,9 +18,9 @@ from app.models import (
 )
 from app.utils.encrypt import encrypt_password
 from extensions import db
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
-# 仅用于初始化测试数据；正式功能应通过岗位表查询，而不是读取这个列表。
+# 仅用于初始化测试数据
 JOB_NAMES = [
     "Java开发工程师",
     "前端开发工程师",
@@ -33,8 +32,6 @@ JOB_NAMES = [
     "运维工程师",
 ]
 
-
-# 原脚本涉及的表，加上新建的岗位表。
 TEST_TABLES = [
     "question_tag_relation",
     "interview_record",
@@ -47,8 +44,30 @@ TEST_TABLES = [
 ]
 
 
+def ensure_tag_pool_schema():
+    """检查标签池表结构，自动补充缺失的 is_deleted 字段。"""
+    inspector = inspect(db.engine)
+
+    columns = {column["name"] for column in inspector.get_columns("tag_pool")}
+
+    if "is_deleted" not in columns:
+        print("检测到 tag_pool 缺少 is_deleted 字段，正在补充...")
+
+        with db.engine.begin() as connection:
+            connection.execute(
+                text(
+                    "ALTER TABLE `tag_pool` "
+                    "ADD COLUMN `is_deleted` TINYINT NOT NULL DEFAULT 0"
+                )
+            )
+
+        print("tag_pool.is_deleted 字段添加成功！")
+    else:
+        print("tag_pool.is_deleted 字段已存在，无需修改。")
+
+
 def seed_job_positions():
-    """只补充缺失的岗位，重复运行不会插入同名岗位，也不修改已有状态。"""
+    """只补充缺失的岗位，不修改已有岗位。"""
     existing_names = {name for (name,) in db.session.query(JobPosition.job_name).all()}
     new_jobs = [
         JobPosition(job_name=name, is_enabled=1)
@@ -59,27 +78,28 @@ def seed_job_positions():
         db.session.add_all(new_jobs)
         db.session.commit()
     print(
-        f"岗位初始化完成：新增 {len(new_jobs)} 个，当前共有 {JobPosition.query.count()} 个岗位。"
+        f"岗位初始化完成：新增 {len(new_jobs)} 个，"
+        f"当前共有 {JobPosition.query.count()} 个岗位。"
     )
 
 
 def clear_test_tables():
-    """重置演示数据。必须显式使用 --reset 才会调用。"""
+    """只有显式使用 --reset 才会清空测试数据。"""
     print("⚠️ 正在清空原有测试数据（包括用户、面试记录等）...")
-    # MySQL 上关闭外键检查后再清空；不使用 DROP TABLE，保留表结构。
+
     with db.engine.begin() as connection:
         connection.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
         try:
             for table_name in TEST_TABLES:
                 connection.execute(text(f"DELETE FROM `{table_name}`"))
         finally:
-            # 无论清理是否成功，都在连接返回连接池前恢复外键检查。
             connection.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
     print("原有测试数据已清空。")
 
 
 def seed_demo_data():
-    """保留原 mock 的教师、班级、学生、题库和历史记录生成逻辑。"""
+    """生成教师、班级、学生、题库和历史记录测试数据。"""
+
     common_pwd = encrypt_password("123456")
     stu_pwd = encrypt_password("2460105133")
 
@@ -133,7 +153,7 @@ def seed_demo_data():
     db.session.commit()
 
     # ==========================================
-    # 3. 创建学生（User.post 仍然存岗位名称）
+    # 3. 创建学生
     # ==========================================
     students = []
     bonan = User(
@@ -171,7 +191,11 @@ def seed_demo_data():
     # 4. 创建题库与标签
     # ==========================================
     tags = [
-        TagPool(tag_name=name, create_time=datetime.now())
+        TagPool(
+            tag_name=name,
+            is_deleted=0,
+            create_time=datetime.now(),
+        )
         for name in [
             "Java基础",
             "前端框架",
@@ -190,7 +214,10 @@ def seed_demo_data():
     for i in range(1, 21):
         question = QuestionBank(
             question=f"通用技术面试题 {i}：请简述相关底层原理与应用场景？",
-            answer=f"参考答案 {i}：需要包含核心概念解释、优缺点对比以及实际业务中的落地案例。",
+            answer=(
+                f"参考答案 {i}：需要包含核心概念解释、"
+                "优缺点对比以及实际业务中的落地案例。"
+            ),
             is_deleted=0,
             create_time=datetime.now(),
         )
@@ -220,7 +247,6 @@ def seed_demo_data():
     ]
     interviews = []
     resumes = []
-
     for i in range(25):
         student = bonan if i < 10 else random.choice(students)
         teacher = random.choice(teachers)
@@ -282,9 +308,8 @@ def seed_demo_data():
 def seed_database(reset=False):
     app = create_app()
     with app.app_context():
-        # 需要先导入 JobPosition（已在本文件顶部导入），create_all 才能识别它。
-        # create_all 只创建缺失的表，不会覆盖已有表结构或删除已有数据。
         db.create_all()
+        ensure_tag_pool_schema()
         if reset:
             clear_test_tables()
         seed_job_positions()

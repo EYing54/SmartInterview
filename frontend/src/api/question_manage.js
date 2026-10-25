@@ -6,3 +6,11 @@ export const getQuestionList = (page, size) => {
     size: size,
   });
 };
+
+export const addQuestions = (question, answer, tag_ids) => {
+  return request.post("/add_questions", {
+    question: question,
+    answer: answer,
+    tag_ids: tag_ids,
+  });
+};
