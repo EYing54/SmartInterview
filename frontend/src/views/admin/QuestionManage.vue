@@ -25,13 +25,18 @@
           <div class="tag-pool">
             <p>搜索标签</p>
             <el-input type="text" v-model="searchKeyword"></el-input>
-            <el-tag v-for="tag in availableTags" :key="tag.tag_id">
+            <el-tag
+              v-for="tag in availableTags"
+              :key="tag.tag_id"
+              @click="handleSelectTag(tag)"
+            >
               {{ tag.tag_name }}
             </el-tag>
             <el-input type="text" v-model="newTagName"></el-input>
             <el-button @click="handleAddTag" type="primary">新增标签</el-button>
           </div>
         </div>
+        <el-button type="primary" @click="commitNewQuestion">确认</el-button>
       </el-dialog>
     </div>
     <el-table :data="questionList" border style="width: 100%">
@@ -44,7 +49,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { getQuestionList } from "../../api/question_manage";
+import { ElMessage } from "element-plus";
+import { getQuestionList, addQuestions } from "../../api/question_manage";
 import {
   getTags,
   addTag,
@@ -54,23 +60,17 @@ import {
 } from "../../api/tag_manage";
 
 const questionList = ref([]);
+//获取当前的数据库中的题库并以el-table的形式展现
 const queryQuestions = async () => {
   try {
     const res = await getQuestionList(1, 20);
-    questionList.value = res.data.data.list;
+    questionList.value = res.data.data.list; //获取到的题目列表
   } catch (error) {
     console.log(error);
   }
 };
 
-const dialogVisible = ref(false);
-const displayDialog = async () => {
-  dialogVisible.value = true;
-  await loadTags();
-};
-
-const question = ref("");
-const answer = ref("");
+const dialogVisible = ref(false); //使用dialogVisible变量控制弹窗的弹出与关闭
 const availableTags = ref([]);
 const loadTags = async () => {
   try {
@@ -82,8 +82,60 @@ const loadTags = async () => {
     console.log("获取标签列表失败！");
   }
 };
+const displayDialog = async () => {
+  dialogVisible.value = true;
+  await loadTags(); //打开弹窗时获取并显示标签池的标签
+};
 
-const selectedTags = ref([]);
+const newTagName = ref("");
+const handleAddTag = async () => {};
+
+const selectedTags = ref([]); //从标签池中选择的标签
+//使用handleSelectTag函数从availableTags获取值赋给selectedTags
+const handleSelectTag = (tag) => {
+  //使用some()检查数组里面有没有与当前tag相同的的tag
+  const exists = selectedTags.value.some((item) => item.tag_id === tag.tag_id);
+  //如果不为真就往数组里加tag
+  if (!exists) {
+    selectedTags.value.push(tag);
+  }
+};
+
+const question = ref("");
+const answer = ref("");
+const commitNewQuestion = async () => {
+  try {
+    //使用map()遍历selectedTags数组，提取每一个tag元素的id并形成新的数组
+    const tagIds = selectedTags.value.map((item) => item.tag_id);
+    //判断是否选择了标签
+    if (tagIds.length === 0) {
+      ElMessage.warning("至少选择一个标签辣！");
+      return;
+    }
+    //判断是否输入了题目
+    if (!question.value.trim()) {
+      //.trim()用来去除字符串首尾的空白字符，如空格
+      ElMessage.warning("你还咩有输入题目！");
+      return;
+    }
+    //判断是否输入了答案
+    if (!answer.value.trim()) {
+      ElMessage.warning("你还咩有输入答案！");
+      return;
+    }
+    const res = await addQuestions(question.value, answer.value, tagIds); //tagIds是map()返回的普通数组，不要加.value
+    console.log(res.data.msg);
+    ElMessage.success("添加成功");
+    selectedTags.value = [];
+    question.value = "";
+    answer.value = "";
+    dialogVisible.value = false;
+    await queryQuestions();
+  } catch (error) {
+    console.log(error);
+    console.log("新增题目失败！");
+  }
+};
 
 onMounted(() => {
   queryQuestions();

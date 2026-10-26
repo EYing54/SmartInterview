@@ -57,6 +57,8 @@ def add_question():
     # 对question_tags进行数据类型的判断，排除非list以及int类型的数据
     if not isinstance(question_tags, list):  # 判断question_tags的数据类型是否为list
         return jsonify({"code": 400, "msg": "标签数据必须是列表！", "data": None}), 400
+    if len(question_tags) == 0:
+        return jsonify({"code": 400, "msg": "请至少选择一个标签！", "data": None}), 400
     for i in question_tags:
         if not isinstance(i, int) or isinstance(i, bool):  # bool值也属于int类型
             return jsonify(
