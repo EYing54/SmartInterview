@@ -16,7 +16,12 @@
             </el-form-item>
 
             <el-form-item label="题目标签：">
-              <el-tag v-for="tag in selectedTags" :key="tag.tag_id" closable>
+              <el-tag
+                v-for="tag in selectedTags"
+                :key="tag.tag_id"
+                closable
+                @close="handleRemoveTag(tag)"
+              >
                 {{ tag.tag_name }}
               </el-tag>
             </el-form-item>
@@ -88,7 +93,23 @@ const displayDialog = async () => {
 };
 
 const newTagName = ref("");
-const handleAddTag = async () => {};
+const handleAddTag = async () => {
+  try {
+    if (!newTagName.value.trim()) {
+      ElMessage.warning("你还咩有输入标签名！");
+      return;
+    }
+    //向后端传的是去除了首位空格的字符串
+    const res = await addTag(newTagName.value.trim());
+    ElMessage.success("新增标签成功！");
+    newTagName.value = "";
+    await loadTags();
+    console.log(res.data.msg);
+  } catch (error) {
+    console.log(error);
+    ElMessage.error("标签添加失败！");
+  }
+};
 
 const selectedTags = ref([]); //从标签池中选择的标签
 //使用handleSelectTag函数从availableTags获取值赋给selectedTags
@@ -126,15 +147,25 @@ const commitNewQuestion = async () => {
     const res = await addQuestions(question.value, answer.value, tagIds); //tagIds是map()返回的普通数组，不要加.value
     console.log(res.data.msg);
     ElMessage.success("添加成功");
+    //清空所有相关的变量的值
     selectedTags.value = [];
     question.value = "";
     answer.value = "";
+    //新增题目完成后自动关闭弹窗
     dialogVisible.value = false;
     await queryQuestions();
   } catch (error) {
     console.log(error);
     console.log("新增题目失败！");
   }
+};
+
+//点击"x"去除已选择的Tag
+const handleRemoveTag = (tag) => {
+  //filter()函数，保留所有符合条件的元素，返回一个新数组。
+  selectedTags.value = selectedTags.value.filter(
+    (item) => item.tag_id !== tag.tag_id,
+  );
 };
 
 onMounted(() => {
