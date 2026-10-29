@@ -20,7 +20,7 @@
               <el-input type="textarea" v-model="answer"></el-input>
             </el-form-item>
 
-            <el-form-item label="题目标签：">
+            <el-form-item label="添加标签：">
               <el-tag
                 v-for="tag in selectedTags"
                 :key="tag.tag_id"
@@ -169,6 +169,7 @@ const handleAddNewQuestion = async () => {
   } catch (error) {
     console.log(error);
     console.log("新增题目失败！");
+    ElMessage.error(error.response?.data?.msg || "新增题目失败！");
   }
 };
 

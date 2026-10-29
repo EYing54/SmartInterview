@@ -4,6 +4,7 @@ from app.models.question import QuestionBank, QuestionTagRelation, TagPool
 from app.utils.auth import role_required
 from extensions import db
 from flask import Blueprint, jsonify, request
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 question_bp = Blueprint("question", __name__)
@@ -70,6 +71,12 @@ def add_question():
         return jsonify({"code": 400, "msg": "缺少必需数据！", "data": None}), 400
     # 对复杂的数据操作进行异常处理
     try:
+        existing_question = QuestionBank.query.filter(
+            func.lower(QuestionBank.question) == question.lower(),
+            QuestionBank.is_deleted == 0,
+        ).first()
+        if existing_question:
+            return jsonify({"code": 409, "msg": "该题目已存在！", "data": None}), 409
         new_question = QuestionBank(
             question=question, answer=answer, create_time=datetime.now()
         )
