@@ -4,7 +4,12 @@
       <h2>题库</h2>
       <el-button type="primary" @click="displayDialog">新增题目</el-button>
 
-      <el-dialog v-model="dialogVisible" title="新 增 题 目" width="900px">
+      <el-dialog
+        v-model="dialogVisible"
+        title="新 增 题 目"
+        @closed="handleDialogClosed"
+        width="900px"
+      >
         <div class="question-dialog-layout">
           <el-form label-position="top">
             <el-form-item label="请输入题目：">
@@ -31,7 +36,7 @@
             <p>搜索标签</p>
             <el-input type="text" v-model="searchKeyword"></el-input>
             <el-tag
-              v-for="tag in availableTags"
+              v-for="tag in filteredTags"
               :key="tag.tag_id"
               @click="handleSelectTag(tag)"
             >
@@ -41,7 +46,7 @@
             <el-button @click="handleAddTag" type="primary">新增标签</el-button>
           </div>
         </div>
-        <el-button type="primary" @click="commitNewQuestion">确认</el-button>
+        <el-button type="primary" @click="handleAddNewQuestion">确认</el-button>
       </el-dialog>
     </div>
     <el-table :data="questionList" border style="width: 100%">
@@ -53,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 import { getQuestionList, addQuestions } from "../../api/question_manage";
 import {
@@ -61,7 +66,6 @@ import {
   addTag,
   modifyTagName,
   deleteTag,
-  searchTag,
 } from "../../api/tag_manage";
 
 const questionList = ref([]);
@@ -75,6 +79,7 @@ const queryQuestions = async () => {
   }
 };
 
+//获取当前可用的标签
 const dialogVisible = ref(false); //使用dialogVisible变量控制弹窗的弹出与关闭
 const availableTags = ref([]);
 const loadTags = async () => {
@@ -92,15 +97,25 @@ const displayDialog = async () => {
   await loadTags(); //打开弹窗时获取并显示标签池的标签
 };
 
+//添加新的标签
 const newTagName = ref("");
 const handleAddTag = async () => {
   try {
-    if (!newTagName.value.trim()) {
+    newTagName.value = newTagName.value.trim();
+    if (!newTagName.value) {
       ElMessage.warning("你还咩有输入标签名！");
       return;
     }
+    const exists = availableTags.value.some(
+      (item) => item.tag_name.toLowerCase() === newTagName.value.toLowerCase(),
+    );
+    if (exists) {
+      console.log("与已有标签重复！");
+      ElMessage.warning("该标签已存在！");
+      return;
+    }
     //向后端传的是去除了首位空格的字符串
-    const res = await addTag(newTagName.value.trim());
+    const res = await addTag(newTagName.value);
     ElMessage.success("新增标签成功！");
     newTagName.value = "";
     await loadTags();
@@ -122,9 +137,10 @@ const handleSelectTag = (tag) => {
   }
 };
 
+//新增题目
 const question = ref("");
 const answer = ref("");
-const commitNewQuestion = async () => {
+const handleAddNewQuestion = async () => {
   try {
     //使用map()遍历selectedTags数组，提取每一个tag元素的id并形成新的数组
     const tagIds = selectedTags.value.map((item) => item.tag_id);
@@ -147,10 +163,6 @@ const commitNewQuestion = async () => {
     const res = await addQuestions(question.value, answer.value, tagIds); //tagIds是map()返回的普通数组，不要加.value
     console.log(res.data.msg);
     ElMessage.success("添加成功");
-    //清空所有相关的变量的值
-    selectedTags.value = [];
-    question.value = "";
-    answer.value = "";
     //新增题目完成后自动关闭弹窗
     dialogVisible.value = false;
     await queryQuestions();
@@ -166,6 +178,26 @@ const handleRemoveTag = (tag) => {
   selectedTags.value = selectedTags.value.filter(
     (item) => item.tag_id !== tag.tag_id,
   );
+};
+
+//关键字搜索
+const searchKeyword = ref("");
+const filteredTags = computed(() => {
+  //将找到的元素数组都赋给filteredTags
+  return availableTags.value.filter((item) => {
+    //如果关键字包含在当前元素的名字中，就返回ture
+    return item.tag_name
+      .toLowerCase()
+      .includes(searchKeyword.value.trim().toLowerCase());
+  });
+});
+
+const handleDialogClosed = () => {
+  newTagName.value = "";
+  selectedTags.value = [];
+  question.value = "";
+  answer.value = "";
+  searchKeyword.value = "";
 };
 
 onMounted(() => {

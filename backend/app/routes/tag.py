@@ -4,6 +4,7 @@ from app.models.question import TagPool
 from app.utils.auth import role_required
 from extensions import db
 from flask import Blueprint, jsonify, request
+from sqlalchemy import func
 
 tag_bp = Blueprint("tag", __name__)
 
@@ -26,7 +27,9 @@ def add_tag():
     tag_name = data.get("tag_name", "").strip()
     if not tag_name:
         return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
-    if TagPool.query.filter_by(tag_name=tag_name, is_deleted=0).first():
+    if TagPool.query.filter(
+        func.lower(TagPool.tag_name) == tag_name.lower(), TagPool.is_deleted == 0
+    ).first():
         return jsonify({"code": 409, "msg": "标签名称重复！", "data": None}), 409
     new_tag = TagPool(tag_name=tag_name, is_deleted=0, create_time=datetime.now())
     db.session.add(new_tag)
@@ -46,7 +49,7 @@ def modify_tag_name():
     if not tag_object:
         return jsonify({"code": 404, "msg": "未找到相关标签！", "data": None}), 404
     if TagPool.query.filter(
-        TagPool.tag_name == new_tag_name,
+        func.lower(TagPool.tag_name) == new_tag_name.lower(),
         TagPool.is_deleted == 0,
         TagPool.tag_id != tag_object.tag_id,
     ).first():  # 判断修改后的标签是否与已有标签重名

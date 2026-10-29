@@ -24,4 +24,4 @@ export const deleteTag = (tag_id, target_tag_name) => {
 
 export const searchTag = (keyword) => {
   return request.post("/search_tags", { keyword: keyword });
-};
+}; //该接口暂时不使用

@@ -9,7 +9,8 @@ from sqlalchemy.exc import SQLAlchemyError
 question_bp = Blueprint("question", __name__)
 
 
-@question_bp.route("/get_questions", methods=["POST"])  # 查询题目
+# 获取已有题目
+@question_bp.route("/get_questions", methods=["POST"])
 @role_required(2)
 def get_questions():
     data = request.json or {}
@@ -38,6 +39,7 @@ def get_questions():
     )  # 返回json数据至前端
 
 
+# 添加新的题目
 @question_bp.route("/add_questions", methods=["POST"])
 @role_required(2)
 def add_question():
@@ -92,6 +94,7 @@ def add_question():
     return jsonify({"code": 200, "msg": "题目添加成功！", "data": None})
 
 
+# 删除题目
 @question_bp.route("/delete_question", methods=["POST"])
 @role_required(2)
 def delete_question():
