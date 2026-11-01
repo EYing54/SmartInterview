@@ -97,7 +97,6 @@ def add_question():
     except SQLAlchemyError:
         db.session.rollback()  # 出现异常后进行回滚
         return jsonify({"code": 500, "msg": "数据库操作失败！", "data": None}), 500
-
     return jsonify({"code": 200, "msg": "题目添加成功！", "data": None})
 
 

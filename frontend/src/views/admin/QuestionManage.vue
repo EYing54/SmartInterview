@@ -4,12 +4,14 @@
       <h2>题库</h2>
       <el-button type="primary" @click="displayDialog">新增题目</el-button>
 
+      <!--弹窗部分-->
       <el-dialog
         v-model="dialogVisible"
         title="新 增 题 目"
         @closed="handleDialogClosed"
         width="900px"
       >
+        <!--弹窗左侧部分-->
         <div class="question-dialog-layout">
           <el-form label-position="top">
             <el-form-item label="请输入题目：">
@@ -32,18 +34,56 @@
             </el-form-item>
           </el-form>
 
+          <!--弹窗右侧部分-->
           <div class="tag-pool">
-            <p>搜索标签</p>
-            <el-input type="text" v-model="searchKeyword"></el-input>
-            <el-tag
-              v-for="tag in filteredTags"
-              :key="tag.tag_id"
-              @click="handleSelectTag(tag)"
-            >
-              {{ tag.tag_name }}
-            </el-tag>
-            <el-input type="text" v-model="newTagName"></el-input>
-            <el-button @click="handleAddTag" type="primary">新增标签</el-button>
+            <!--上部搜索公用组件-->
+            <div>
+              <span>可用标签</span>
+              <el-button v-if="!isManageMode" @click="isManageMode = true"
+                >管理标签</el-button
+              >
+              <el-button v-else @click="isManageMode = false"
+                >返回选择</el-button
+              >
+              <el-input type="text" v-model="searchKeyword"></el-input>
+            </div>
+
+            <!--中部if组件-->
+            <div v-if="!isManageMode">
+              <el-tag
+                v-for="tag in filteredTags"
+                :key="tag.tag_id"
+                @click="handleSelectTag(tag)"
+              >
+                {{ tag.tag_name }}
+              </el-tag>
+            </div>
+
+            <!--中部else组件-->
+            <div v-else>
+              <template v-for="tag in filteredTags" :key="tag.tag_id">
+                <!--单元行-->
+                <div class="tag-item">
+                  {{ tag.tag_name
+                  }}<el-icon @click="handleEditTag(tag)"><Edit /></el-icon>
+                  <el-icon @click="handleDeleteTag(tag)"><Delete /></el-icon>
+                </div>
+              </template>
+            </div>
+
+            <!--下部公用组件-->
+            <div>
+              <el-input type="text" v-model="newTagName"></el-input>
+              <el-button
+                v-if="!isManageMode"
+                @click="handleAddTag"
+                type="primary"
+                >新增</el-button
+              >
+              <el-button v-else @click="handleSaveTagName" type="primary"
+                >保存</el-button
+              >
+            </div>
           </div>
         </div>
         <el-button type="primary" @click="handleAddNewQuestion">确认</el-button>
@@ -61,6 +101,7 @@
 import { ref, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 import { getQuestionList, addQuestions } from "../../api/question_manage";
+import { Delete, Edit } from "@element-plus/icons-vue";
 import {
   getTags,
   addTag,
@@ -193,12 +234,58 @@ const filteredTags = computed(() => {
   });
 });
 
+//标签管理
+const isManageMode = ref(false);
+const editingTagId = ref("");
+//修改标签名称
+const handleEditTag = (tag) => {
+  newTagName.value = tag.tag_name;
+  editingTagId.value = tag.tag_id;
+};
+const handleSaveTagName = async () => {
+  try {
+    newTagName.value = newTagName.value.trim();
+    //判空校验
+    if (!newTagName.value) {
+      ElMessage.warning("你还咩有输入标签名！");
+      return;
+    }
+    //防止未选择标签就修改标签名
+    if (!editingTagId.value) {
+      ElMessage.warning("不可以凭空修改标签名哦！");
+      return;
+    }
+    //防止未修改标签就进行保存
+    const exists = availableTags.value.some(
+      (item) =>
+        item.tag_id === editingTagId.value &&
+        item.tag_name === newTagName.value,
+    );
+    if (exists) {
+      ElMessage.warning("标签名称还没修改呢！");
+      return;
+    }
+    const res = await modifyTagName(editingTagId.value, newTagName.value);
+    await loadTags();
+    console.log(res?.data?.msg);
+    ElMessage.success("标签修改成功！");
+    newTagName.value = "";
+    editingTagId.value = "";
+  } catch (error) {
+    console.log(error);
+    console.log("标签修改失败！");
+    ElMessage.error(error.response?.data?.msg || "标签修改失败！");
+  }
+};
+
 const handleDialogClosed = () => {
   newTagName.value = "";
   selectedTags.value = [];
   question.value = "";
   answer.value = "";
   searchKeyword.value = "";
+  isManageMode.value = false;
+  editingTagId.value = "";
 };
 
 onMounted(() => {
@@ -248,5 +335,34 @@ onMounted(() => {
 .tag-pool > .el-input {
   margin-top: 12px;
   margin-bottom: 12px;
+}
+
+/* 管理的每一行标签 */
+.tag-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tag-item .el-icon:first-of-type {
+  margin-left: auto;
+}
+
+/* 图标样式 */
+.tag-item .el-icon {
+  font-size: 17px;
+  cursor: pointer;
+}
+
+/* 编辑图标悬停样式 */
+.tag-item .el-icon:first-of-type:hover {
+  color: var(--el-color-primary);
+}
+
+/* 删除图标悬停样式 */
+.tag-item .el-icon:last-of-type:hover {
+  color: var(--el-color-danger);
 }
 </style>

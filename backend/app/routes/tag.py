@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from app.models.question import TagPool
+from app.models.question import QuestionBank, QuestionTagRelation, TagPool
 from app.utils.auth import role_required
 from extensions import db
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
 
 tag_bp = Blueprint("tag", __name__)
 
@@ -63,17 +64,68 @@ def modify_tag_name():
 @role_required(2)
 def delete_tag_name():
     data = request.json or {}
-    tag_id = data.get("tag_id", "")
-    target_tag_name = data.get("target_tag_name", "").strip()
-    if not tag_id or not target_tag_name:
+    target_tag_id = data.get("target_tag_id", "")
+    target_tag_name = data.get("target_tag_name", "")
+    # 先检查数据类型
+    if (
+        not isinstance(target_tag_id, int)
+        or isinstance(target_tag_id, bool)
+        or not isinstance(target_tag_name, str)
+    ):
+        return jsonify(
+            {"code": 400, "msg": "标签的ID或名称的数据类型错误！", "data": None}
+        ), 400
+    # 确认是字符串后再去除空格
+    target_tag_name = target_tag_name.strip()
+    # 最后检查是否为空
+    if not target_tag_id or not target_tag_name:
         return jsonify({"code": 400, "msg": "未获取到数据！", "data": None}), 400
-    tag_object = TagPool.query.filter_by(
-        is_deleted=0, tag_id=tag_id, tag_name=target_tag_name
-    ).first()  # 删除标签的时候经行id和name的双重验证
-    if not tag_object:
-        return jsonify({"code": 404, "msg": "未找到相关标签！", "data": None}), 404
-    tag_object.is_deleted = 1
-    db.session.commit()
+    try:
+        tag_object = TagPool.query.filter_by(
+            is_deleted=0, tag_id=target_tag_id, tag_name=target_tag_name
+        ).first()  # 删除标签的时候经行id和name的双重验证
+        if not tag_object:
+            return jsonify({"code": 404, "msg": "未找到相关标签！", "data": None}), 404
+        # 查询目标标签关联的未被删除的题目的数量（有效题目的数量）
+        active_count = (
+            QuestionBank.query.join(
+                QuestionTagRelation,
+                QuestionBank.question_id == QuestionTagRelation.question_id,
+            )
+            .filter(
+                QuestionTagRelation.tag_id == target_tag_id,
+                QuestionBank.is_deleted == 0,
+            )
+            .count()
+        )
+        if active_count > 0:
+            return jsonify(
+                {
+                    "code": 409,
+                    "msg": f"该标签关联了{active_count}道有效题目，无法删除！",
+                    "data": active_count,
+                }
+            ), 409
+        unactive_count = (
+            QuestionBank.query.join(
+                QuestionTagRelation,
+                QuestionBank.question_id == QuestionTagRelation.question_id,
+            )
+            .filter(
+                QuestionTagRelation.tag_id == target_tag_id,
+                QuestionBank.is_deleted == 1,
+            )
+            .count()
+        )
+        if unactive_count == 0:
+            db.session.delete(tag_object)
+            db.session.commit()
+            return jsonify({"code": 200, "msg": "标签删除成功！", "data": None})
+        tag_object.is_deleted = 1
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        return jsonify({"code": 500, "msg": "数据库操作失败！", "data": None}), 500
     return jsonify({"code": 200, "msg": "标签删除成功！", "data": None})
 
 

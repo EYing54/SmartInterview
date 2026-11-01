@@ -8,9 +8,9 @@ export const addTag = (tag_name) => {
   return request.post("/add_tag", { tag_name: tag_name });
 };
 
-export const modifyTagName = (tag_id, new_tag_name) => {
+export const modifyTagName = (target_tag_id, new_tag_name) => {
   return request.post("/modify_tag_name", {
-    tag_id: tag_id,
+    tag_id: target_tag_id,
     new_tag_name: new_tag_name,
   });
 };
