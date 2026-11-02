@@ -15,9 +15,9 @@ export const modifyTagName = (target_tag_id, new_tag_name) => {
   });
 };
 
-export const deleteTag = (tag_id, target_tag_name) => {
+export const deleteTag = (target_tag_id, target_tag_name) => {
   return request.post("/delete_tag", {
-    tag_id: tag_id,
+    target_tag_id: target_tag_id,
     target_tag_name: target_tag_name,
   });
 };

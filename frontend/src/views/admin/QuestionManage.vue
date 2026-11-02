@@ -65,7 +65,7 @@
                 <!--单元行-->
                 <div class="tag-item">
                   {{ tag.tag_name
-                  }}<el-icon @click="handleEditTag(tag)"><Edit /></el-icon>
+                  }}<el-icon @click="handlegetEditTag(tag)"><Edit /></el-icon>
                   <el-icon @click="handleDeleteTag(tag)"><Delete /></el-icon>
                 </div>
               </template>
@@ -238,7 +238,7 @@ const filteredTags = computed(() => {
 const isManageMode = ref(false);
 const editingTagId = ref("");
 //修改标签名称
-const handleEditTag = (tag) => {
+const handlegetEditTag = (tag) => {
   newTagName.value = tag.tag_name;
   editingTagId.value = tag.tag_id;
 };
@@ -269,12 +269,26 @@ const handleSaveTagName = async () => {
     await loadTags();
     console.log(res?.data?.msg);
     ElMessage.success("标签修改成功！");
+    //修改成功后初始化输入框状态
     newTagName.value = "";
     editingTagId.value = "";
   } catch (error) {
     console.log(error);
     console.log("标签修改失败！");
     ElMessage.error(error.response?.data?.msg || "标签修改失败！");
+  }
+};
+
+//删除标签
+const handleDeleteTag = async (tag) => {
+  try {
+    const res = await deleteTag(tag.tag_id, tag.tag_name);
+    console.log(res.data.msg);
+    ElMessage.success("标签删除成功！");
+    await loadTags();
+  } catch (error) {
+    console.log(error);
+    console.log(error.response?.data?.msg || "标签删除失败！");
   }
 };
 
