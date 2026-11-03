@@ -99,7 +99,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { getQuestionList, addQuestions } from "../../api/question_manage";
 import { Delete, Edit } from "@element-plus/icons-vue";
 import {
@@ -252,7 +252,7 @@ const handleSaveTagName = async () => {
     }
     //防止未选择标签就修改标签名
     if (!editingTagId.value) {
-      ElMessage.warning("不可以凭空修改标签名哦！");
+      ElMessage.warning("不可以凭空修改标签名哦！请先点击修改图标！");
       return;
     }
     //防止未修改标签就进行保存
@@ -282,11 +282,37 @@ const handleSaveTagName = async () => {
 //删除标签
 const handleDeleteTag = async (tag) => {
   try {
+    //二次确认确认框
+    await ElMessageBox.confirm(
+      `确定要删除标签「${tag.tag_name}」吗？`,
+      "删除确认",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      },
+    );
     const res = await deleteTag(tag.tag_id, tag.tag_name);
     console.log(res.data.msg);
     ElMessage.success("标签删除成功！");
     await loadTags();
   } catch (error) {
+    if (error === "close" || error === "cancel") {
+      return; //ElementPlus的确认框在关闭或者取消时会给catch传error，这里不再执行错误处理
+    }
+    if (error.response?.status === 409) {
+      const count = error.response.data.data;
+      ElMessageBox.alert(
+        `「${tag.tag_name}」标签还有${count}个题目在用呢！你要狠心拆散他们吗？QAQ`,
+        "删除失败",
+        { confirmButtonText: "确定", type: "error" },
+      );
+    } else {
+      ElMessageBox.alert(error.response?.data?.msg, "删除失败", {
+        confirmButtonText: "确定",
+        type: "error",
+      });
+    }
     console.log(error);
     console.log(error.response?.data?.msg || "标签删除失败！");
   }
