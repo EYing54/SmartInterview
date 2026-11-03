@@ -48,7 +48,7 @@
               <el-input type="text" v-model="searchKeyword"></el-input>
             </div>
 
-            <!--中部if组件-->
+            <!--中部if组件：选择模式-->
             <div v-if="!isManageMode">
               <el-tag
                 v-for="tag in filteredTags"
@@ -59,7 +59,7 @@
               </el-tag>
             </div>
 
-            <!--中部else组件-->
+            <!--中部else组件：管理模式-->
             <div v-else>
               <template v-for="tag in filteredTags" :key="tag.tag_id">
                 <!--单元行-->
@@ -332,11 +332,16 @@ onMounted(() => {
   queryQuestions();
 });
 </script>
+
 <style scoped>
+/* 题库顶部 */
 .question-header {
   display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
+/* 弹窗左右布局 */
 .question-dialog-layout {
   display: flex;
   gap: 24px;
@@ -353,56 +358,140 @@ onMounted(() => {
 .tag-pool {
   flex: 9 1 0;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* 输入框宽度 */
+/* 输入框通用宽度 */
 .question-dialog-layout .el-input,
 .question-dialog-layout .el-textarea {
   width: 100%;
 }
 
-/* 标签池标题 */
-.tag-pool p {
-  margin: 0 0 10px;
+/* 顶部标题、管理按钮和搜索框 */
+.tag-pool > div:first-child {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
 }
 
-/* 标签之间的间距 */
-.tag-pool .el-tag {
-  margin: 8px 8px 0 0;
+.tag-pool > div:first-child > span {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
 }
 
-/* 标签池输入框与按钮间距 */
-.tag-pool > .el-input {
-  margin-top: 12px;
-  margin-bottom: 12px;
+.tag-pool > div:first-child > .el-button {
+  margin: 0;
 }
 
-/* 管理的每一行标签 */
+.tag-pool > div:first-child > .el-input {
+  grid-column: 1 / -1;
+}
+
+/* 核心：固定大小的标签展示区域 */
+.tag-pool > div:nth-child(2) {
+  box-sizing: border-box;
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+  flex-shrink: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding: 12px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  background-color: var(--el-fill-color-lighter);
+
+  scrollbar-width: thin;
+  scrollbar-color: #c4c9d2 transparent;
+}
+
+/* 标签展示区域内的标签 */
+.tag-pool > div:nth-child(2) .el-tag {
+  margin: 0 8px 8px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 鼠标悬停效果 */
+.tag-pool > div:nth-child(2) .el-tag:hover {
+  border-color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-8);
+}
+
+/* 管理模式中的每行标签 */
 .tag-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 4px;
-  border-bottom: 1px solid #e5e7eb;
+  min-height: 36px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  transition: background-color 0.2s ease;
 }
 
+.tag-item:last-child {
+  border-bottom: none;
+}
+
+.tag-item:hover {
+  background-color: var(--el-fill-color);
+  border-radius: 4px;
+}
+
+/* 编辑图标自动靠右 */
 .tag-item .el-icon:first-of-type {
   margin-left: auto;
 }
 
-/* 图标样式 */
+/* 图标通用样式 */
 .tag-item .el-icon {
   font-size: 17px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-/* 编辑图标悬停样式 */
+/* 编辑图标悬停 */
 .tag-item .el-icon:first-of-type:hover {
   color: var(--el-color-primary);
 }
 
-/* 删除图标悬停样式 */
+/* 删除图标悬停 */
 .tag-item .el-icon:last-of-type:hover {
   color: var(--el-color-danger);
+}
+
+/* 底部输入框和操作按钮 */
+.tag-pool > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 输入框占用剩余宽度 */
+.tag-pool > div:last-child > .el-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 按钮保持固定宽度 */
+.tag-pool > div:last-child > .el-button {
+  flex-shrink: 0;
+  min-width: 68px;
+  margin: 0;
+}
+
+/* 左侧已选标签间距 */
+.question-dialog-layout > .el-form .el-tag {
+  margin: 0 8px 8px 0;
+}
+
+/* 弹窗底部确认按钮 */
+.question-dialog-layout + .el-button {
+  margin-top: 20px;
 }
 </style>
