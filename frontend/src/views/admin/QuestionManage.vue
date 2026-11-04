@@ -225,12 +225,16 @@ const handleRemoveTag = (tag) => {
 //关键字搜索
 const searchKeyword = ref("");
 const filteredTags = computed(() => {
-  //将找到的元素数组都赋给filteredTags
+  //将找到的元素都赋给filteredTags
   return availableTags.value.filter((item) => {
-    //如果关键字包含在当前元素的名字中，就返回ture
-    return item.tag_name
+    const isSelected = selectedTags.value.some(
+      (tag) => tag.tag_id === item.tag_id,
+    ); //判断当前选择了的标签里有没有和当前遍历到的可用标签一样的，如果有就返回ture
+    const isMatched = item.tag_name
       .toLowerCase()
-      .includes(searchKeyword.value.trim().toLowerCase());
+      .includes(searchKeyword.value.trim().toLowerCase()); //判断当前遍历到的标签名称里是否包含搜索关键字，如果包含就返回ture
+    const canShow = isManageMode.value || !isSelected; //管理模式默认为false，
+    return isMatched && canShow;
   });
 });
 
