@@ -2,7 +2,9 @@
   <div style="padding: 20px">
     <div class="question-header">
       <h2>题库</h2>
-      <el-button type="primary" @click="displayDialog">新增题目</el-button>
+      <el-button type="primary" @click="displayDialog" :icon="Plus"
+        >新增题目</el-button
+      >
 
       <!--弹窗部分-->
       <el-dialog
@@ -14,15 +16,26 @@
         <!--弹窗左侧部分-->
         <div class="question-dialog-layout">
           <el-form label-position="top">
-            <el-form-item label="请输入题目：">
-              <el-input type="textarea" v-model="question"></el-input>
+            <el-form-item label="题目">
+              <el-input
+                type="textarea"
+                v-model="question"
+                placeholder="请在这里输入题目"
+              ></el-input>
             </el-form-item>
 
-            <el-form-item label="请输入参考答案：">
-              <el-input type="textarea" v-model="answer"></el-input>
+            <el-form-item label="参考答案">
+              <el-input
+                type="textarea"
+                v-model="answer"
+                placeholder="请在这里输入参考答案"
+              ></el-input>
             </el-form-item>
 
-            <el-form-item label="添加标签：">
+            <el-form-item label="添加标签">
+              <div v-if="selectedTags.length === 0" class="selected-tags-empty">
+                <span>点击右侧标签，就可以添加到这里啦</span>
+              </div>
               <el-tag
                 v-for="tag in selectedTags"
                 :key="tag.tag_id"
@@ -39,13 +52,24 @@
             <!--上部搜索公用组件-->
             <div>
               <span>可用标签</span>
-              <el-button v-if="!isManageMode" @click="isManageMode = true"
+              <el-button
+                v-if="!isManageMode"
+                @click="isManageMode = true"
+                :icon="Setting"
                 >管理标签</el-button
               >
-              <el-button v-else @click="isManageMode = false"
+              <el-button
+                v-else
+                @click="isManageMode = false"
+                :icon="ArrowLeftBold"
                 >返回选择</el-button
               >
-              <el-input type="text" v-model="searchKeyword"></el-input>
+              <el-input
+                type="text"
+                v-model="searchKeyword"
+                placeholder="在这里搜索标签"
+                :prefix-icon="Search"
+              ></el-input>
             </div>
 
             <!--中部if组件：选择模式-->
@@ -73,14 +97,27 @@
 
             <!--下部公用组件-->
             <div>
-              <el-input type="text" v-model="newTagName"></el-input>
+              <el-input
+                type="text"
+                v-model="newTagName"
+                :placeholder="
+                  isManageMode
+                    ? '点击上面标签的修改图标进行修改哦'
+                    : '在这里可以新增标签'
+                "
+              ></el-input>
               <el-button
                 v-if="!isManageMode"
                 @click="handleAddTag"
                 type="primary"
+                :icon="Plus"
                 >新增</el-button
               >
-              <el-button v-else @click="handleSaveTagName" type="primary"
+              <el-button
+                v-else
+                @click="handleSaveTagName"
+                type="primary"
+                :icon="Check"
                 >保存</el-button
               >
             </div>
@@ -101,7 +138,15 @@
 import { ref, onMounted, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getQuestionList, addQuestions } from "../../api/question_manage";
-import { Delete, Edit } from "@element-plus/icons-vue";
+import {
+  Delete,
+  Edit,
+  Search,
+  Setting,
+  Plus,
+  ArrowLeftBold,
+  Check,
+} from "@element-plus/icons-vue";
 import {
   getTags,
   addTag,
@@ -345,114 +390,293 @@ onMounted(() => {
   gap: 16px;
 }
 
+/* 弹窗整体 */
+:global(.el-dialog:has(.question-dialog-layout)) {
+  margin: 4vh auto 0 !important;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 弹窗标题区域 */
+:global(.el-dialog:has(.question-dialog-layout) .el-dialog__header) {
+  margin: 0;
+  padding: 18px 24px 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 弹窗标题 */
+:global(.el-dialog:has(.question-dialog-layout) .el-dialog__title) {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--el-text-color-primary);
+}
+
+/* 关闭按钮 */
+:global(.el-dialog:has(.question-dialog-layout) .el-dialog__headerbtn) {
+  top: 12px;
+  right: 16px;
+}
+
+/* 弹窗内容区域 */
+:global(.el-dialog:has(.question-dialog-layout) .el-dialog__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  padding: 8px 24px 20px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+/* 隐藏弹窗内容滚动条 */
+:global(
+  .el-dialog:has(.question-dialog-layout) .el-dialog__body::-webkit-scrollbar
+) {
+  display: none;
+}
+
 /* 弹窗左右布局 */
 .question-dialog-layout {
   display: flex;
+  align-items: stretch;
   gap: 24px;
-  align-items: flex-start;
+  height: 388px;
+  min-height: 0;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-/* 左侧题目表单 */
-.question-dialog-layout > .el-form {
-  flex: 11 1 0;
-  min-width: 0;
-}
-
-/* 右侧标签池 */
-.tag-pool {
-  flex: 9 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* 输入框通用宽度 */
+/* 输入框宽度 */
 .question-dialog-layout .el-input,
 .question-dialog-layout .el-textarea {
   width: 100%;
 }
 
-/* 顶部标题、管理按钮和搜索框 */
+/* 左侧题目表单 */
+.question-dialog-layout > .el-form {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 表单项间距 */
+.question-dialog-layout > .el-form .el-form-item {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 12px;
+}
+
+/* 左右标题统一样式 */
+.question-dialog-layout > .el-form :deep(.el-form-item__label),
+.tag-pool > div:first-child > span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  line-height: 22px;
+}
+
+/* 左侧表单标题 */
+.question-dialog-layout > .el-form :deep(.el-form-item__label) {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+/* 题目标题行 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:first-child
+  :deep(.el-form-item__label) {
+  height: 40px;
+  min-height: 40px;
+  flex: 0 0 40px;
+  margin-bottom: 8px;
+}
+
+/* 题目输入框 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:nth-child(1)
+  :deep(.el-textarea__inner) {
+  height: 72px;
+  min-height: 72px;
+  max-height: 72px;
+  overflow-y: auto;
+  resize: none;
+}
+
+/* 参考答案输入框 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:nth-child(2)
+  :deep(.el-textarea__inner) {
+  height: 120px;
+  min-height: 120px;
+  max-height: 120px;
+  overflow-y: auto;
+  resize: none;
+}
+
+/* 已选标签表单项 */
+.question-dialog-layout > .el-form .el-form-item:nth-child(3) {
+  flex: 1 1 0;
+  min-height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+/* 已选标签展示区域 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:nth-child(3)
+  :deep(.el-form-item__content) {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 8px;
+  background-color: var(--el-bg-color);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+/* 隐藏已选标签滚动条 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:nth-child(3)
+  :deep(.el-form-item__content::-webkit-scrollbar) {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* 已选标签样式 */
+.question-dialog-layout > .el-form .el-form-item:nth-child(3) .el-tag {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* 右侧标签池 */
+.tag-pool {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 标签池顶部布局 */
 .tag-pool > div:first-child {
   display: grid;
   grid-template-columns: 1fr auto;
+  grid-template-rows: 40px 40px;
   align-items: center;
-  gap: 10px;
+  column-gap: 10px;
+  row-gap: 8px;
 }
 
+/* 可用标签标题 */
 .tag-pool > div:first-child > span {
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+  display: flex;
+  align-items: center;
+  height: 40px;
 }
 
+/* 管理标签按钮 */
 .tag-pool > div:first-child > .el-button {
   margin: 0;
 }
 
+/* 搜索输入框 */
 .tag-pool > div:first-child > .el-input {
   grid-column: 1 / -1;
+  height: 40px;
 }
 
-/* 核心：固定大小的标签展示区域 */
+/* 固定标签展示区域 */
 .tag-pool > div:nth-child(2) {
   box-sizing: border-box;
   height: 240px;
   min-height: 240px;
   max-height: 240px;
-  flex-shrink: 0;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-
+  flex: 0 0 240px;
   padding: 12px;
   border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
   background-color: var(--el-fill-color-lighter);
-
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: #c4c9d2 transparent;
 }
 
-/* 标签展示区域内的标签 */
+/* 可用标签样式 */
 .tag-pool > div:nth-child(2) .el-tag {
   margin: 0 8px 8px 0;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-/* 鼠标悬停效果 */
+/* 标签悬停 */
 .tag-pool > div:nth-child(2) .el-tag:hover {
   border-color: var(--el-color-primary);
   background-color: var(--el-color-primary-light-8);
 }
 
-/* 管理模式中的每行标签 */
+/* 管理模式标签行 */
 .tag-item {
   display: flex;
   align-items: center;
   gap: 12px;
+  box-sizing: border-box;
   min-height: 36px;
   padding: 5px 8px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   transition: background-color 0.2s ease;
 }
 
+/* 最后一行标签 */
 .tag-item:last-child {
   border-bottom: none;
 }
 
+/* 标签行悬停 */
 .tag-item:hover {
   background-color: var(--el-fill-color);
   border-radius: 4px;
 }
 
-/* 编辑图标自动靠右 */
+/* 编辑图标靠右 */
 .tag-item .el-icon:first-of-type {
   margin-left: auto;
 }
 
-/* 图标通用样式 */
+/* 操作图标样式 */
 .tag-item .el-icon {
   font-size: 17px;
   cursor: pointer;
@@ -469,33 +693,77 @@ onMounted(() => {
   color: var(--el-color-danger);
 }
 
-/* 底部输入框和操作按钮 */
+/* 标签池底部操作区 */
 .tag-pool > div:last-child {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
-/* 输入框占用剩余宽度 */
+/* 新增标签输入框 */
 .tag-pool > div:last-child > .el-input {
   flex: 1;
   min-width: 0;
 }
 
-/* 按钮保持固定宽度 */
+/* 新增和保存按钮 */
 .tag-pool > div:last-child > .el-button {
-  flex-shrink: 0;
   min-width: 68px;
   margin: 0;
+  flex-shrink: 0;
 }
 
-/* 左侧已选标签间距 */
-.question-dialog-layout > .el-form .el-tag {
-  margin: 0 8px 8px 0;
-}
-
-/* 弹窗底部确认按钮 */
+/* 底部确认按钮 */
 .question-dialog-layout + .el-button {
-  margin-top: 20px;
+  display: block;
+  width: 100px;
+  min-height: 36px;
+  align-self: center;
+  flex-shrink: 0;
+  margin: 0 auto !important;
+}
+
+/* 已选标签容器定位 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:nth-child(3)
+  :deep(.el-form-item__content) {
+  position: relative;
+}
+
+/* 已选标签容器定位 */
+.question-dialog-layout
+  > .el-form
+  .el-form-item:nth-child(3)
+  :deep(.el-form-item__content) {
+  position: relative;
+}
+
+/* 空状态提示居中 */
+.selected-tags-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* 隐藏空状态图标 */
+.selected-tags-empty-icon {
+  display: none;
+}
+
+/* 空状态提示文字 */
+.selected-tags-empty span {
+  font-size: 13px;
+  color: var(--el-text-color-placeholder);
+}
+
+/* 隐藏辅助文字 */
+.selected-tags-empty small {
+  display: none;
 }
 </style>
