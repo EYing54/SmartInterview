@@ -733,14 +733,6 @@ onMounted(() => {
   position: relative;
 }
 
-/* 已选标签容器定位 */
-.question-dialog-layout
-  > .el-form
-  .el-form-item:nth-child(3)
-  :deep(.el-form-item__content) {
-  position: relative;
-}
-
 /* 空状态提示居中 */
 .selected-tags-empty {
   position: absolute;
@@ -751,19 +743,9 @@ onMounted(() => {
   pointer-events: none;
 }
 
-/* 隐藏空状态图标 */
-.selected-tags-empty-icon {
-  display: none;
-}
-
 /* 空状态提示文字 */
 .selected-tags-empty span {
   font-size: 13px;
   color: var(--el-text-color-placeholder);
-}
-
-/* 隐藏辅助文字 */
-.selected-tags-empty small {
-  display: none;
 }
 </style>
