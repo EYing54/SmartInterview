@@ -2,7 +2,7 @@
   <div style="padding: 20px">
     <div class="question-header">
       <h2>题库</h2>
-      <el-button type="primary" @click="displayDialog" :icon="Plus"
+      <el-button plain type="primary" @click="displayDialog" :icon="Plus"
         >新增题目</el-button
       >
 
@@ -126,10 +126,22 @@
         <el-button type="primary" @click="handleAddNewQuestion">确认</el-button>
       </el-dialog>
     </div>
-    <el-table :data="questionList" border style="width: 100%">
-      <el-table-column prop="question_id" label="ID" width="80" />
-      <el-table-column prop="question" label="面试题目" />
+    <el-table
+      :data="questionList"
+      border
+      style="width: 100%"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="index" label="序号" width="80" align="center" />
+      <el-table-column
+        prop="question_id"
+        label="题目ID"
+        width="80"
+        align="center"
+      />
+      <el-table-column prop="question" label="题目" />
       <el-table-column prop="answer" label="参考答案" />
+      <el-table-column type="selection" width="60" align="center" />
     </el-table>
   </div>
 </template>
@@ -347,6 +359,7 @@ const handleDeleteTag = async (tag) => {
     await loadTags();
   } catch (error) {
     if (error === "close" || error === "cancel") {
+      console.log("用户取消了操作！");
       return; //ElementPlus的确认框在关闭或者取消时会给catch传error，这里不再执行错误处理
     }
     if (error.response?.status === 409) {

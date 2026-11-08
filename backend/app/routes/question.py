@@ -27,7 +27,6 @@ def get_questions():
             "question_id": i.question_id,
             "question": i.question,
             "answer": i.answer,
-            "is_deleted": i.is_deleted,
             "create_time": i.create_time,
         }
         result_list.append(i_dict)  # 将循环中的每一次查到题目的添加到列表中
@@ -105,7 +104,7 @@ def add_question():
 @role_required(2)
 def delete_question():
     data = request.json
-    target_id = data.get("question_id")  # 获取前端想要查询的题目id
+    target_id = data.get("question_id")  # 获取前端想要查删除的题目的id
     if not target_id:  # id判空
         return jsonify({"code": 400, "msg": "请求失败，缺少题目id", "data": None}), 400
     # id数据类型判断

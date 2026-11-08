@@ -1,80 +1,38 @@
 <template>
-  <div style="padding: 20px; max-width: 1200px; margin: 0 auto">
-    <div
-      style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-      "
-    >
-      <div style="border-left: 5px solid #409eff; padding-left: 15px">
-        <h2 style="margin: 0; font-size: 22px">学生表</h2>
+  <div class="manage-page">
+    <div class="manage-header">
+      <div class="manage-title">
+        <h2>学生表</h2>
       </div>
 
-      <div style="display: flex; gap: 12px; align-items: center">
-        <div style="position: relative; width: 250px">
+      <div class="manage-toolbar">
+        <div class="search-box">
           <el-input
             v-model="searchQuery"
             :prefix-icon="Search"
             @focus="isFocused = true"
             @blur="isFocused = false"
           />
-          <div
-            v-show="!searchQuery && !isFocused"
-            style="
-              position: absolute;
-              left: 32px;
-              top: 50%;
-              transform: translateY(-50%);
-              display: flex;
-              align-items: center;
-              color: #a8abb2;
-              font-size: 14px;
-              pointer-events: none;
-            "
-          >
+          <div v-show="!searchQuery && !isFocused" class="search-placeholder">
             输入
-            <span
-              style="
-                border: 1px solid #dcdfe6;
-                border-radius: 4px;
-                padding: 1px 5px;
-                margin: 0 4px;
-                font-size: 12px;
-                background-color: #f4f4f5;
-              "
-              >/</span
-            >
+            <span class="search-shortcut">/</span>
             以查询
           </div>
         </div>
 
-        <el-button plain type="primary" :icon="Plus" style="margin-left: 0"
-          >新增数据</el-button
-        >
-        <el-button
-          plain
-          type="warning"
-          :icon="Refresh"
-          style="margin-left: 0"
-          @click="handleReset"
-          >重置密码</el-button
-        >
-        <el-button
-          plain
-          type="danger"
-          :icon="Delete"
-          style="margin-left: 0"
-          @click="handleDelete"
-          >删除账号</el-button
-        >
+        <el-button plain type="primary" :icon="Plus"> 新增数据 </el-button>
+        <el-button plain type="warning" :icon="Refresh" @click="handleReset">
+          重置密码
+        </el-button>
+        <el-button plain type="danger" :icon="Delete" @click="handleDelete">
+          删除账号
+        </el-button>
       </div>
     </div>
 
     <el-table
       :data="studentList"
-      style="width: 100%"
+      class="manage-table"
       border
       stripe
       @selection-change="handleSelectionChange"
@@ -88,7 +46,7 @@
       <el-table-column type="selection" width="60" align="center" />
     </el-table>
 
-    <div style="display: flex; justify-content: center; margin-top: 20px">
+    <div class="pagination-container">
       <el-pagination
         v-model:current-page="currentPage"
         :page-size="pageSize"
@@ -110,15 +68,14 @@ import { ref, onMounted } from "vue";
 import { Delete, Plus, Refresh, Search } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
+const searchQuery = ref("");
+const isFocused = ref(false);
+
+//获取学生列表
 const studentList = ref([]);
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(20);
-
-const searchQuery = ref("");
-const selectedStudents = ref([]);
-const isFocused = ref(false);
-
 const getStudents = async () => {
   const res = await getStudentList(currentPage.value, pageSize.value);
   studentList.value = res.data.data.list;
@@ -126,16 +83,19 @@ const getStudents = async () => {
   console.log("获取到的学生账号为:", studentList.value);
 };
 
-const handleSelectionChange = (val) => {
-  selectedStudents.value = val;
-  console.log(selectedStudents);
-};
-
 const handlePageChange = (val) => {
   currentPage.value = val;
   getStudents();
 };
 
+//关联每一行的选择框
+const selectedStudents = ref([]);
+const handleSelectionChange = (val) => {
+  selectedStudents.value = val;
+  console.log(selectedStudents);
+};
+
+//删除选择的账号
 const handleDelete = async () => {
   const selectedUsersId = selectedStudents.value.map((item) => item.user_id);
   if (selectedUsersId.length == 0) {
@@ -163,6 +123,7 @@ const handleDelete = async () => {
   }
 };
 
+//重置选择的账号
 const handleReset = async () => {
   const selectedUsersId = selectedStudents.value.map((item) => item.user_id);
   if (selectedUsersId.length == 0) {
@@ -182,7 +143,7 @@ const handleReset = async () => {
     getStudents();
   } catch (error) {
     if (error === "cancel" || error === "close") {
-      console.log("用户取消了操作");
+      console.log("用户取消了操作！");
     } else {
       ElMessage.error("系统异常，重置失败！");
       console.error(error);
@@ -194,3 +155,79 @@ onMounted(() => {
   getStudents();
 });
 </script>
+
+<style scoped>
+.manage-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 页面头部 */
+.manage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.manage-title {
+  border-left: 5px solid #409eff;
+  padding-left: 15px;
+}
+
+.manage-title h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+/* 操作工具栏 */
+.manage-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.manage-toolbar :deep(.el-button) {
+  margin-left: 0;
+}
+
+/* 搜索框 */
+.search-box {
+  position: relative;
+  width: 250px;
+}
+
+.search-placeholder {
+  position: absolute;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: #a8abb2;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.search-shortcut {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin: 0 4px;
+  font-size: 12px;
+  background-color: #f4f4f5;
+}
+
+/* 数据表格 */
+.manage-table {
+  width: 100%;
+}
+
+/* 分页 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+</style>
