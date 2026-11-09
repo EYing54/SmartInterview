@@ -1,11 +1,27 @@
 <template>
-  <div style="padding: 20px">
-    <div class="question-header">
-      <h2>题库</h2>
-      <el-button plain type="primary" @click="displayDialog" :icon="Plus"
-        >新增题目</el-button
-      >
-
+  <div class="manage-page">
+    <div class="manage-header">
+      <div class="manage-title">
+        <h2>题库</h2>
+      </div>
+      <div class="manage-toolbar">
+        <div class="search-box">
+          <el-input
+            v-model="searchQuery"
+            :prefix-icon="Search"
+            @focus="isFocused = true"
+            @blur="isFocused = false"
+          />
+          <div v-show="!searchQuery && !isFocused" class="search-placeholder">
+            输入
+            <span class="search-shortcut">/</span>
+            以查询
+          </div>
+        </div>
+        <el-button plain type="primary" @click="displayDialog" :icon="Plus"
+          >新增题目</el-button
+        >
+      </div>
       <!--弹窗部分-->
       <el-dialog
         v-model="dialogVisible"
@@ -128,6 +144,7 @@
     </div>
     <el-table
       :data="questionList"
+      class="manage-table"
       border
       style="width: 100%"
       @selection-change="handleSelectionChange"
@@ -143,6 +160,16 @@
       <el-table-column prop="answer" label="参考答案" />
       <el-table-column type="selection" width="60" align="center" />
     </el-table>
+
+    <div class="pagination-container">
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        layout="prev, pager, next"
+        :total="total"
+        @current-change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -167,14 +194,36 @@ import {
 } from "../../api/tag_manage";
 
 const questionList = ref([]);
+const total = ref(0);
+const currentPage = ref(1);
+const pageSize = ref(20);
 //获取当前的数据库中的题库并以el-table的形式展现
-const queryQuestions = async () => {
+const getQuestions = async () => {
   try {
-    const res = await getQuestionList(1, 20);
+    const res = await getQuestionList(currentPage.value, pageSize.value);
     questionList.value = res.data.data.list; //获取到的题目列表
+    total.value = res.data.data.total;
+    console.log("题库获取成功！");
   } catch (error) {
     console.log(error);
   }
+};
+
+//分页功能
+const handlePageChange = (val) => {
+  currentPage.value = val;
+  getQuestions();
+};
+
+//控制搜索框的变化
+const searchQuery = ref("");
+const isFocused = ref(false);
+
+//关联每一行的选择框
+const selectedQuestions = ref([]);
+const handleSelectionChange = (val) => {
+  selectedQuestions.value = val;
+  console.log(selectedQuestions);
 };
 
 //获取当前可用的标签
@@ -263,7 +312,7 @@ const handleAddNewQuestion = async () => {
     ElMessage.success("添加成功");
     //新增题目完成后自动关闭弹窗
     dialogVisible.value = false;
-    await queryQuestions();
+    await getQuestions();
   } catch (error) {
     console.log(error);
     console.log("新增题目失败！");
@@ -391,16 +440,83 @@ const handleDialogClosed = () => {
 };
 
 onMounted(() => {
-  queryQuestions();
+  getQuestions();
 });
 </script>
 
 <style scoped>
+.manage-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 /* 题库顶部 */
-.question-header {
+.manage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.manage-title {
+  border-left: 5px solid #409eff;
+  padding-left: 15px;
+}
+
+.manage-title h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+/* 操作工具栏 */
+.manage-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.manage-toolbar :deep(.el-button) {
+  margin-left: 0;
+}
+
+/* 搜索框 */
+.search-box {
+  position: relative;
+  width: 250px;
+}
+
+.search-placeholder {
+  position: absolute;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 16px;
+  color: #a8abb2;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.search-shortcut {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin: 0 4px;
+  font-size: 12px;
+  background-color: #f4f4f5;
+}
+
+/* 数据表格 */
+.manage-table {
+  width: 100%;
+}
+
+/* 分页 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 /* 弹窗整体 */

@@ -83,6 +83,7 @@ const getStudents = async () => {
   console.log("获取到的学生账号为:", studentList.value);
 };
 
+//分页功能
 const handlePageChange = (val) => {
   currentPage.value = val;
   getStudents();
@@ -163,7 +164,7 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-/* 页面头部 */
+/* 页面顶部 */
 .manage-header {
   display: flex;
   justify-content: space-between;

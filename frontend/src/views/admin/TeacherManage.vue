@@ -82,6 +82,7 @@ const getTeachers = async () => {
   console.log("获取到的教师账号为：", teacherList.value);
 };
 
+//分页功能
 const handlePageChange = (val) => {
   currentPage.value = val;
   getTeachers();
@@ -162,7 +163,7 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-/* 页面头部 */
+/* 页面顶部 */
 .manage-header {
   display: flex;
   justify-content: space-between;
