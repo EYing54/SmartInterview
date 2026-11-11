@@ -157,7 +157,11 @@
         align="center"
       />
       <el-table-column prop="question" label="题目" />
-      <el-table-column prop="answer" label="参考答案" />
+      <el-table-column label="标签">
+        <template #default="scope">
+          <el-tag v-for="tag in scope.row.question_tags">{{ tag }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column type="selection" width="60" align="center" />
     </el-table>
 

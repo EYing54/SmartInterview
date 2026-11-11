@@ -5,6 +5,7 @@ const request = axios.create({
   timeout: 5000,
 });
 
+//拦截器
 request.interceptors.request.use((config) => {
   const myToken = localStorage.getItem("token");
   if (myToken) {

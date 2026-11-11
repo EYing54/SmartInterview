@@ -21,6 +21,17 @@ def get_questions():
         page=page, per_page=size, error_out=False
     )
     questions = pagination.items  # 查询数据库中的所有题目
+    question_ids = [i.question_id for i in questions]  # 列表推导式，返回的是一个列表
+    tags = (
+        db.session.query(QuestionTagRelation.question_id, TagPool.tag_name)
+        .join(TagPool, TagPool.tag_id == QuestionTagRelation.tag_id)
+        .filter(QuestionTagRelation.question_id.in_(question_ids))
+        .all()
+    )
+    tag_map = {}
+    for i in tags:
+        # 某个键不存在时，自动创建一个默认值，同时也会返回这个默认值（可以直接调用append）
+        tag_map.setdefault(i.question_id, []).append(i.tag_name)
     result_list = []
     for i in questions:
         i_dict = {
@@ -28,6 +39,7 @@ def get_questions():
             "question": i.question,
             "answer": i.answer,
             "create_time": i.create_time,
+            "question_tags": tag_map.get(i.question_id, []),
         }
         result_list.append(i_dict)  # 将循环中的每一次查到题目的添加到列表中
     return jsonify(

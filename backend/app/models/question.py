@@ -1,4 +1,5 @@
 from extensions import db
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.mysql import TINYINT
 
 
@@ -24,6 +25,9 @@ class TagPool(db.Model):
 # 题目标签关联表
 class QuestionTagRelation(db.Model):
     __tablename__ = "question_tag_relation"
+    __table_args__ = (
+        UniqueConstraint("question_id", "tag_id", name="uq_question_tag"),
+    )  # 联合唯一性约束
     relation_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     question_id = db.Column(
         db.Integer, db.ForeignKey("question_bank.question_id"), nullable=False
