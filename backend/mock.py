@@ -306,18 +306,34 @@ def seed_demo_data():
     db.session.commit()
 
     # 生成不重复的题目与标签组合
-    all_pairs = list(product(questions, tags))
-    selected_pairs = random.sample(all_pairs, k=30)
+    selected_pairs = [(question, random.choice(tags)) for question in questions]
 
-    relations = []
+    selected_ids = {
+        (question.question_id, tag.tag_id) for question, tag in selected_pairs
+    }
 
-    for question, tag in selected_pairs:
-        relation = QuestionTagRelation(
+    remaining_pairs = [
+        (question, tag)
+        for question, tag in product(questions, tags)
+        if (question.question_id, tag.tag_id) not in selected_ids
+    ]
+
+    target_count = max(30, len(questions))
+    extra_count = min(
+        target_count - len(selected_pairs),
+        len(remaining_pairs),
+    )
+
+    selected_pairs.extend(random.sample(remaining_pairs, k=extra_count))
+
+    relations = [
+        QuestionTagRelation(
             question_id=question.question_id,
             tag_id=tag.tag_id,
             create_time=datetime.now(),
         )
-        relations.append(relation)
+        for question, tag in selected_pairs
+    ]
 
     db.session.add_all(relations)
     db.session.commit()

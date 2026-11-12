@@ -7,10 +7,13 @@ export const getQuestionList = (page, size) => {
   });
 };
 
-export const addQuestions = (question, answer, tag_ids) => {
+export const addQuestions = (question, answer, tagIds) => {
   return request.post("/add_questions", {
     question: question,
     answer: answer,
-    tag_ids: tag_ids,
+    tag_ids: tagIds,
   });
+};
+export const deleteQuestions = (questionId) => {
+  return request.post("/delete_question", { question_id: questionId });
 };

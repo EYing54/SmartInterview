@@ -7,10 +7,10 @@ export const getStudentList = (page, size) => {
   });
 };
 
-export const deleteAccount = (user_id) => {
-  return request.post("/delete_s_account", { user_id: user_id });
+export const deleteAccount = (userId) => {
+  return request.post("/delete_s_account", { user_id: userId });
 }; //user_id的数据类型是数组
 
-export const resetAccount = (user_id) => {
-  return request.post("/reset_s_account_password", { user_id: user_id });
+export const resetAccount = (userId) => {
+  return request.post("/reset_s_account_password", { user_id: userId });
 }; //user_id的数据类型也是数组

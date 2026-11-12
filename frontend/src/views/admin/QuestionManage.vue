@@ -21,6 +21,13 @@
         <el-button plain type="primary" @click="displayDialog" :icon="Plus"
           >新增题目</el-button
         >
+        <el-button
+          plain
+          type="danger"
+          @click="handleDeleteQuestions"
+          :icon="Delete"
+          >删除题目</el-button
+        >
       </div>
       <!--弹窗部分-->
       <el-dialog
@@ -159,7 +166,11 @@
       <el-table-column prop="question" label="题目" />
       <el-table-column label="标签">
         <template #default="scope">
-          <el-tag v-for="tag in scope.row.question_tags">{{ tag }}</el-tag>
+          <div class="question-tag">
+            <el-tag v-for="tag in scope.row.question_tags" :key="tag">{{
+              tag
+            }}</el-tag>
+          </div>
         </template>
       </el-table-column>
       <el-table-column type="selection" width="60" align="center" />
@@ -180,7 +191,11 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getQuestionList, addQuestions } from "../../api/question_manage";
+import {
+  getQuestionList,
+  addQuestions,
+  deleteQuestions,
+} from "../../api/question_manage";
 import {
   Delete,
   Edit,
@@ -189,6 +204,7 @@ import {
   Plus,
   ArrowLeftBold,
   Check,
+  Warning,
 } from "@element-plus/icons-vue";
 import {
   getTags,
@@ -277,6 +293,7 @@ const handleAddTag = async () => {
   }
 };
 
+//选择标签
 const selectedTags = ref([]); //从标签池中选择的标签
 //使用handleSelectTag函数从availableTags获取值赋给selectedTags
 const handleSelectTag = (tag) => {
@@ -321,6 +338,38 @@ const handleAddNewQuestion = async () => {
     console.log(error);
     console.log("新增题目失败！");
     ElMessage.error(error.response?.data?.msg || "新增题目失败！");
+  }
+};
+
+//删除题目
+const handleDeleteQuestions = async () => {
+  try {
+    if (selectedQuestions.value.length === 0) {
+      ElMessage.error("你还没有选择要删除的题目啊！");
+      return;
+    }
+    const selectedQuestionIds = selectedQuestions.value.map(
+      (item) => item.question_id,
+    );
+    await ElMessageBox.confirm(
+      `>_< 你要狠心删除这${selectedQuestions.value.length}道题目吗？`,
+      "删除题目",
+      {
+        confirmButtonText: "确认",
+        cancelButtonText: "取消",
+        type: "warning",
+      },
+    );
+    const res = await deleteQuestions(selectedQuestionIds);
+    ElMessage.success(res.data.msg);
+    await getQuestionList();
+  } catch (error) {
+    if (error === "cancel" || error === "close") {
+      return;
+    }
+    ElMessage.error("删除失败！");
+    console.log(error);
+    console.log(error.response?.data?.msg);
   }
 };
 
@@ -514,6 +563,13 @@ onMounted(() => {
 /* 数据表格 */
 .manage-table {
   width: 100%;
+}
+
+/*题目标签 */
+.question-tag {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 /* 分页 */
