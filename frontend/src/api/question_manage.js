@@ -14,6 +14,6 @@ export const addQuestions = (question, answer, tagIds) => {
     tag_ids: tagIds,
   });
 };
-export const deleteQuestions = (questionId) => {
-  return request.post("/delete_question", { question_id: questionId });
+export const deleteQuestions = (questionIds) => {
+  return request.post("/delete_question", { question_ids: questionIds });
 };

@@ -204,7 +204,6 @@ import {
   Plus,
   ArrowLeftBold,
   Check,
-  Warning,
 } from "@element-plus/icons-vue";
 import {
   getTags,
@@ -362,7 +361,7 @@ const handleDeleteQuestions = async () => {
     );
     const res = await deleteQuestions(selectedQuestionIds);
     ElMessage.success(res.data.msg);
-    await getQuestionList();
+    await getQuestions();
   } catch (error) {
     if (error === "cancel" || error === "close") {
       return;
