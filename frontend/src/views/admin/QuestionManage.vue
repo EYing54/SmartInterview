@@ -364,6 +364,7 @@ const handleDeleteQuestions = async () => {
     await getQuestions();
   } catch (error) {
     if (error === "cancel" || error === "close") {
+      console.log("用户取消了操作！");
       return;
     }
     ElMessage.error("删除失败！");

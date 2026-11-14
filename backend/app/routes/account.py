@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify, request
 account_bp = Blueprint("account", __name__)
 
 
+# 获取学生账号列表
 @account_bp.route("/get_student_list", methods=["POST"])
 @role_required(2)
 def get_student_list():
@@ -46,34 +47,48 @@ def get_student_list():
     )
 
 
+# 删除学生账号
 @account_bp.route("/delete_s_account", methods=["POST"])
 @role_required(2)
 def delete_student():
     data = request.json or {}
-    target_users_id = data.get("user_id")
-    if not target_users_id or not isinstance(target_users_id, list):
+    target_users_ids = data.get("user_ids")
+    if not isinstance(target_users_ids, list):
         return jsonify(
-            {"code": 400, "msg": "参数错误：user_id 必须是一个非空数组", "data": None}
+            {"code": 400, "msg": "参数类型错误，必须是列表！", "data": None}
         ), 400
-    affected_rows = User.query.filter(
-        User.role == 0, User.user_id.in_(target_users_id)
-    ).update({"is_deleted": 1})
-    if affected_rows == 0:
+    if not target_users_ids:
+        return jsonify(
+            {"code": 400, "msg": "请求失败，缺少用户id！", "data": None}
+        ), 400
+    if not all(type(user_id) is int and user_id > 0 for user_id in target_users_ids):
+        return jsonify({"code": 400, "msg": "用户ID必须是正整数！", "data": None}), 400
+    target_users_ids = list(set(target_users_ids))
+    # 限制当前接口只能删除学生账号
+    update_count = User.query.filter(
+        User.role == 0, User.is_deleted == 0, User.user_id.in_(target_users_ids)
+    ).update({"is_deleted": 1}, synchronize_session=False)
+    if update_count == 0:
+        return jsonify({"code": 404, "msg": "账号不存在！"}), 404
+    if update_count != len(target_users_ids):
         db.session.rollback()
-        return jsonify({"code": 404, "msg": "未找到匹配的账号，可能已被删除"}), 404
+        return jsonify(
+            {"code": 404, "msg": "部分账号不存在或已删除！", "data": None}
+        ), 404
     db.session.commit()
     return jsonify(
-        {"code": 200, "msg": f"成功删除{affected_rows}个账号！", "data": None}
+        {"code": 200, "msg": f"成功删除{update_count}个账号！", "data": None}
     )
 
 
+# 重置学生账号的密码（默认密码：123456789）
 @account_bp.route("/reset_s_account_password", methods=["POST"])
 @role_required(2)
 def reset_s_password():
     data = request.json or {}
     target_users_id = data.get("user_id")
     if not target_users_id or not isinstance(target_users_id, list):
-        return jsonify({"code": 400, "msg": "未获取到有效的id！", "data": None}, 400)
+        return jsonify({"code": 400, "msg": "未获取到有效的id！", "data": None}), 400
     default_password = encrypt_password("123456789")
     affected_rows = User.query.filter(User.user_id.in_(target_users_id)).update(
         {"password": default_password}
@@ -87,6 +102,7 @@ def reset_s_password():
     )
 
 
+# 获取教师账号列表
 @account_bp.route("/get_teacher_list", methods=["POST"])
 @role_required(2)
 def get_teacher_list():
@@ -122,34 +138,48 @@ def get_teacher_list():
     )
 
 
-@account_bp.route("/delete_t_account")
+# 删除教师账号
+@account_bp.route("/delete_t_account", methods=["POST"])
 @role_required(2)
 def delete_t_account():
-    data = request.json() or {}
-    target_users_id = data.get("user_id")
-    if not target_users_id or not isinstance(target_users_id, list):
+    data = request.json or {}
+    target_users_ids = data.get("user_ids")
+    if not isinstance(target_users_ids, list):
         return jsonify(
-            {"code": 400, "msg": "参数错误：user_id 必须是一个非空数组", "data": None}
+            {"code": 400, "msg": "参数类型错误，必须是列表！", "data": None}
         ), 400
-    affected_rows = User.query.filter(
-        User.role == 1, User.user_id.in_(target_users_id)
-    ).update({"is_deleted": 1})
-    if affected_rows == 0:
+    if not target_users_ids:
+        return jsonify(
+            {"code": 400, "msg": "请求失败，缺少用户id！", "data": None}
+        ), 400
+    if not all(type(user_id) is int and user_id > 0 for user_id in target_users_ids):
+        return jsonify({"code": 400, "msg": "用户ID必须是正整数！", "data": None}), 400
+    target_users_ids = list(set(target_users_ids))
+    # 限制当前接口只能删除教师账号
+    update_count = User.query.filter(
+        User.role == 1, User.is_deleted == 0, User.user_id.in_(target_users_ids)
+    ).update({"is_deleted": 1}, synchronize_session=False)
+    if update_count == 0:
+        return jsonify({"code": 404, "msg": "账号不存在！"}), 404
+    if update_count != len(target_users_ids):
         db.session.rollback()
-        return jsonify({"code": 404, "msg": "未找到匹配的账号，可能已被删除"}), 404
+        return jsonify(
+            {"code": 404, "msg": "部分账号不存在或已删除！", "data": None}
+        ), 404
     db.session.commit()
     return jsonify(
-        {"code": 200, "msg": f"成功删除{affected_rows}个账号！", "data": None}
+        {"code": 200, "msg": f"成功删除{update_count}个账号！", "data": None}
     )
 
 
+# 重置教师账号的密码（默认密码：123456789）
 @account_bp.route("/reset_t_account_password", methods=["POST"])
 @role_required(2)
 def reset_t_password():
     data = request.json or {}
     target_users_id = data.get("user_id")
     if not target_users_id or not isinstance(target_users_id, list):
-        return jsonify({"code": 400, "msg": "未获取到有效的id！", "data": None}, 400)
+        return jsonify({"code": 400, "msg": "未获取到有效的id！", "data": None}), 400
     default_password = encrypt_password("123456789")
     affected_rows = User.query.filter(User.user_id.in_(target_users_id)).update(
         {"password": default_password}

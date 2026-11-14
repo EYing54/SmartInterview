@@ -116,31 +116,37 @@ def add_question():
 @role_required(2)
 def delete_question():
     data = request.json
-    target_ids = data.get("question_ids")  # 获取前端想要查删除的题目的id
-
+    # 获取前端想要查删除的题目的id
+    target_ids = data.get("question_ids")
     # id列表的数据类型判断
     if not isinstance(target_ids, list):
         return jsonify(
             {"code": 400, "msg": "参数类型错误，必须是列表", "data": None}
         ), 400
-    if not target_ids:  # id_list判空
+    # id_list判空
+    if not target_ids:
         return jsonify({"code": 400, "msg": "请求失败，缺少题目id", "data": None}), 400
     if not all(
         type(question_id) is int and question_id > 0 for question_id in target_ids
     ):
         return jsonify({"code": 400, "msg": "题目ID必须是正整数！", "data": None}), 400
-    target_ids = list(set(target_ids))  # 去重
+    # 去重
+    target_ids = list(set(target_ids))
     update_count = QuestionBank.query.filter(
         QuestionBank.is_deleted == 0, QuestionBank.question_id.in_(target_ids)
     ).update(
         {QuestionBank.is_deleted: 1}, synchronize_session=False
     )  # 用update()批量更新数据，返回的值是更新数据的数量
-    if update_count == 0:  # 题目判空
+    # 题目判空
+    if update_count == 0:
         return jsonify({"code": 404, "msg": "题目不存在", "data": None}), 404
+    # 题目合规性检查
     if update_count != len(target_ids):
         db.session.rollback()
         return jsonify(
             {"code": 404, "msg": "部分题目不存在或已经删除！", "data": None}
         ), 404
     db.session.commit()  # 提交到数据库
-    return jsonify({"code": 200, "msg": "删除成功", "data": None})
+    return jsonify(
+        {"code": 200, "msg": f"成功删除{update_count}道题目！", "data": None}
+    )

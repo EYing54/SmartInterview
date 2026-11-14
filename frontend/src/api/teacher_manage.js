@@ -7,8 +7,8 @@ export const getTeacherList = (page, size) => {
   });
 };
 
-export const deleteAccount = (userId) => {
-  return request.post("/delete_t_account", { user_id: userId });
+export const deleteAccount = (userIds) => {
+  return request.post("/delete_t_account", { user_ids: userIds });
 };
 
 export const resetAccount = (userId) => {

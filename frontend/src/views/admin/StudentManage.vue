@@ -116,7 +116,8 @@ const handleDelete = async () => {
     getStudents();
   } catch (error) {
     if (error === "cancel" || error === "close") {
-      console.log("用户取消了操作");
+      console.log("用户取消了操作！");
+      return;
     } else {
       ElMessage.error("系统异常，删除失败！");
       console.error(error);
