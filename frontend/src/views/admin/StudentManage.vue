@@ -6,19 +6,8 @@
       </div>
 
       <div class="manage-toolbar">
-        <div class="search-box">
-          <el-input
-            v-model="searchQuery"
-            :prefix-icon="Search"
-            @focus="isFocused = true"
-            @blur="isFocused = false"
-          />
-          <div v-show="!searchQuery && !isFocused" class="search-placeholder">
-            输入
-            <span class="search-shortcut">/</span>
-            以查询
-          </div>
-        </div>
+        <!--复用的搜索框组件-->
+        <CommandSearch />
 
         <el-button plain type="primary" :icon="Plus"> 新增数据 </el-button>
         <el-button plain type="warning" :icon="Refresh" @click="handleReset">
@@ -67,9 +56,7 @@ import {
 import { ref, onMounted } from "vue";
 import { Delete, Plus, Refresh, Search } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-
-const searchQuery = ref("");
-const isFocused = ref(false);
+import CommandSearch from "../../components/CommandSearch.vue";
 
 //获取学生列表
 const studentList = ref([]);
@@ -192,33 +179,6 @@ onMounted(() => {
 
 .manage-toolbar :deep(.el-button) {
   margin-left: 0;
-}
-
-/* 搜索框 */
-.search-box {
-  position: relative;
-  width: 250px;
-}
-
-.search-placeholder {
-  position: absolute;
-  left: 32px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  color: #a8abb2;
-  font-size: 14px;
-  pointer-events: none;
-}
-
-.search-shortcut {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 1px 5px;
-  margin: 0 4px;
-  font-size: 12px;
-  background-color: #f4f4f5;
 }
 
 /* 数据表格 */

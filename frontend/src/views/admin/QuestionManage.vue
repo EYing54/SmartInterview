@@ -5,19 +5,9 @@
         <h2>题库</h2>
       </div>
       <div class="manage-toolbar">
-        <div class="search-box">
-          <el-input
-            v-model="searchQuery"
-            :prefix-icon="Search"
-            @focus="isFocused = true"
-            @blur="isFocused = false"
-          />
-          <div v-show="!searchQuery && !isFocused" class="search-placeholder">
-            输入
-            <span class="search-shortcut">/</span>
-            以查询
-          </div>
-        </div>
+        <!--复用的搜索框组件-->
+        <CommandSearch />
+
         <el-button plain type="primary" @click="displayDialog" :icon="Plus"
           >新增题目</el-button
         >
@@ -211,6 +201,7 @@ import {
   modifyTagName,
   deleteTag,
 } from "../../api/tag_manage";
+import CommandSearch from "../../components/CommandSearch.vue";
 
 const questionList = ref([]);
 const total = ref(0);
@@ -233,10 +224,6 @@ const handlePageChange = (val) => {
   currentPage.value = val;
   getQuestions();
 };
-
-//控制搜索框的变化
-const searchQuery = ref("");
-const isFocused = ref(false);
 
 //关联每一行的选择框
 const selectedQuestions = ref([]);
@@ -531,33 +518,6 @@ onMounted(() => {
 
 .manage-toolbar :deep(.el-button) {
   margin-left: 0;
-}
-
-/* 搜索框 */
-.search-box {
-  position: relative;
-  width: 250px;
-}
-
-.search-placeholder {
-  position: absolute;
-  left: 32px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  color: #a8abb2;
-  font-size: 14px;
-  pointer-events: none;
-}
-
-.search-shortcut {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 1px 5px;
-  margin: 0 4px;
-  font-size: 12px;
-  background-color: #f4f4f5;
 }
 
 /* 数据表格 */
