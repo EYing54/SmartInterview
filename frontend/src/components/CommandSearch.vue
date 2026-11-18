@@ -1,9 +1,10 @@
 <template>
   <div class="search-box">
-    <el-input
+    <el-autocomplete
+      :fetch-suggestions="fetchSuggestions"
       v-model="searchKeyword"
       :prefix-icon="Search"
-      @focus="isFocused = true"
+      @focus="handleFocus"
       @blur="isFocused = false"
     />
     <div v-show="!searchKeyword && !isFocused" class="search-placeholder">
@@ -20,6 +21,23 @@ import { Search } from "@element-plus/icons-vue";
 
 const searchKeyword = ref("");
 const isFocused = ref(false);
+
+// 焦点事件绑定输入框获得焦点
+const handleFocus = () => {
+  isFocused.value = true;
+};
+
+//通过props接收父组件提供的搜索条件
+const props = defineProps({ suggestions: Array });
+//cb是一个函数，可以将匹配到的建议callback给autocomplete输入框
+const fetchSuggestions = (queryString, cb) => {
+  //找到与用户输入匹配的搜索建议
+  const filterSuggestions = props.suggestions.filter((item) =>
+    item.value.includes(queryString),
+  );
+  //callback回调函数，传出fetchSuggestions，并让autocomplete组件决定如何使用
+  cb(filterSuggestions);
+};
 </script>
 
 <style scoped>

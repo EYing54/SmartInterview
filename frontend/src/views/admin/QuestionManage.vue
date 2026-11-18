@@ -6,7 +6,7 @@
       </div>
       <div class="manage-toolbar">
         <!--复用的搜索框组件-->
-        <CommandSearch />
+        <CommandSearch :suggestions="questionSearchOptions" />
 
         <el-button plain type="primary" @click="displayDialog" :icon="Plus"
           >新增题目</el-button
@@ -232,6 +232,13 @@ const handleSelectionChange = (val) => {
   console.log(selectedQuestions);
 };
 
+//准备一个所有搜索建议的数组，并与commandSearch绑定
+const questionSearchOptions = [
+  { value: "/question_id:" },
+  { value: "/question:" },
+  { value: "/answer:" },
+  { value: "/tag_name:" },
+];
 //获取当前可用的标签
 const dialogVisible = ref(false); //使用dialogVisible变量控制弹窗的弹出与关闭
 const availableTags = ref([]);

@@ -7,7 +7,7 @@
 
       <div class="manage-toolbar">
         <!--复用的搜索框组件-->
-        <CommandSearch />
+        <CommandSearch :suggestions="teacherSearchOptions" />
 
         <el-button plain type="primary" :icon="Plus"> 新增数据 </el-button>
         <el-button plain type="warning" :icon="Refresh" @click="handleReset">
@@ -81,6 +81,14 @@ const handleSelectionChange = (val) => {
   selectedTeachers.value = val;
   console.log(selectedTeachers);
 };
+
+//准备一个所有搜索建议的数组，并与commandSearch绑定
+const teacherSearchOptions = [
+  { value: "/user_id:" },
+  { value: "/username:" },
+  { value: "/real_name:" },
+  { value: "/nickname:" },
+];
 
 //删除选择的账号
 const handleDelete = async () => {
