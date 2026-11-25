@@ -8,7 +8,10 @@
       <div class="manage-toolbar">
         <!--复用的搜索框组件-->
         <!--suggestions是给子组件定义的Props属性名称-->
-        <CommandSearch :suggestions="studentSearchOptions" />
+        <CommandSearch
+          :suggestions="studentSearchOptions"
+          @search="handleStudentSearch"
+        />
 
         <el-button plain type="primary" :icon="Plus"> 新增数据 </el-button>
         <el-button plain type="warning" :icon="Refresh" @click="handleReset">
@@ -65,7 +68,12 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(20);
 const getStudents = async () => {
-  const res = await getStudentList(currentPage.value, pageSize.value);
+  const res = await getStudentList(
+    currentPage.value,
+    pageSize.value,
+    searchStudentCriteria.value,
+    searchStudentKeyword.value,
+  );
   studentList.value = res.data.data.list;
   total.value = res.data.data.total;
   console.log("获取到的学生账号为:", studentList.value);
@@ -92,6 +100,14 @@ const studentSearchOptions = [
   { value: "/nickname:" },
   { value: "/class_name:" },
 ];
+
+//接收子组件传来的数据
+const searchStudentCriteria = ref("");
+const searchStudentKeyword = ref("");
+const handleStudentSearch = (data) => {
+  searchStudentCriteria.value = data.searchCriteria;
+  searchStudentKeyword.value = data.searchKeyword;
+};
 
 //删除选择的账号
 const handleDelete = async () => {

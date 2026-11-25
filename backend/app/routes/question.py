@@ -11,7 +11,7 @@ question_bp = Blueprint("question", __name__)
 
 
 # 获取已有题目
-@question_bp.route("/get_questions", methods=["POST"])
+@question_bp.route("/get_question_list", methods=["POST"])
 @role_required(2)
 def get_questions():
     data = request.json or {}

@@ -7,7 +7,10 @@
 
       <div class="manage-toolbar">
         <!--复用的搜索框组件-->
-        <CommandSearch :suggestions="teacherSearchOptions" />
+        <CommandSearch
+          :suggestions="teacherSearchOptions"
+          @search="handleTeacherSearch"
+        />
 
         <el-button plain type="primary" :icon="Plus"> 新增数据 </el-button>
         <el-button plain type="warning" :icon="Refresh" @click="handleReset">
@@ -63,7 +66,12 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(20);
 const getTeachers = async () => {
-  const res = await getTeacherList(currentPage.value, pageSize.value);
+  const res = await getTeacherList(
+    currentPage.value,
+    pageSize.value,
+    searchTeacherCriteria.value,
+    searchTeacherKeyword.value,
+  );
   teacherList.value = res.data.data.list;
   total.value = res.data.data.total;
   console.log("获取到的教师账号为：", teacherList.value);
@@ -89,6 +97,14 @@ const teacherSearchOptions = [
   { value: "/real_name:" },
   { value: "/nickname:" },
 ];
+
+//接收子组件传来的数据
+const searchTeacherCriteria = ref("");
+const searchTeacherKeyword = ref("");
+const handleTeacherSearch = (data) => {
+  searchTeacherCriteria.value = data.searchCriteria;
+  searchTeacherKeyword.value = data.searchKeyword;
+};
 
 //删除选择的账号
 const handleDelete = async () => {

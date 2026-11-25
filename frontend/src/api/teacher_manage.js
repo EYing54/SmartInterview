@@ -1,9 +1,16 @@
 import request from "../utils/request";
 
-export const getTeacherList = (page, size) => {
+export const getTeacherList = (
+  page,
+  size,
+  searchCriteria = "",
+  searchKeyword = "",
+) => {
   return request.post("/get_teacher_list", {
     page: page,
     size: size,
+    search_criteria: searchCriteria,
+    search_keyword: searchKeyword,
   });
 };
 

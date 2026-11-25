@@ -1,9 +1,16 @@
 import request from "../utils/request";
 
-export const getQuestionList = (page, size) => {
-  return request.post("/get_questions", {
+export const getQuestionList = (
+  page,
+  size,
+  searchCriteria = "",
+  searchKeyword = "",
+) => {
+  return request.post("/get_question_list", {
     page: page,
     size: size,
+    search_criteria: searchCriteria,
+    search_keyword: searchKeyword,
   });
 };
 

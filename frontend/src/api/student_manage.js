@@ -1,9 +1,16 @@
 import request from "../utils/request";
 
-export const getStudentList = (page, size) => {
+export const getStudentList = (
+  page,
+  size,
+  searchCriteria = "",
+  searchKeyword = "",
+) => {
   return request.post("/get_student_list", {
     page: page,
     size: size,
+    search_criteria: searchCriteria,
+    search_keyword: searchKeyword,
   });
 };
 

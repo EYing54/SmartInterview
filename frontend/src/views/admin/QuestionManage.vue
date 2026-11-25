@@ -6,7 +6,10 @@
       </div>
       <div class="manage-toolbar">
         <!--复用的搜索框组件-->
-        <CommandSearch :suggestions="questionSearchOptions" />
+        <CommandSearch
+          :suggestions="questionSearchOptions"
+          @search="handleQuestionSearch"
+        />
 
         <el-button plain type="primary" @click="displayDialog" :icon="Plus"
           >新增题目</el-button
@@ -79,7 +82,7 @@
               >
               <el-input
                 type="text"
-                v-model="searchKeyword"
+                v-model="searchTagKeyword"
                 placeholder="在这里搜索标签"
                 :prefix-icon="Search"
               ></el-input>
@@ -210,7 +213,12 @@ const pageSize = ref(20);
 //获取当前的数据库中的题库并以el-table的形式展现
 const getQuestions = async () => {
   try {
-    const res = await getQuestionList(currentPage.value, pageSize.value);
+    const res = await getQuestionList(
+      currentPage.value,
+      pageSize.value,
+      searchQuestionCriteria.value,
+      searchQuestionKeyword.value,
+    );
     questionList.value = res.data.data.list; //获取到的题目列表
     total.value = res.data.data.total;
     console.log("题库获取成功！");
@@ -239,6 +247,15 @@ const questionSearchOptions = [
   { value: "/answer:" },
   { value: "/tag_name:" },
 ];
+
+//接收子组件传来的数据
+const searchQuestionCriteria = ref("");
+const searchQuestionKeyword = ref("");
+const handleQuestionSearch = (data) => {
+  searchQuestionCriteria.value = data.searchCriteria;
+  searchQuestionKeyword.value = data.searchKeyword;
+};
+
 //获取当前可用的标签
 const dialogVisible = ref(false); //使用dialogVisible变量控制弹窗的弹出与关闭
 const availableTags = ref([]);
@@ -375,8 +392,8 @@ const handleRemoveTag = (tag) => {
   );
 };
 
-//关键字搜索
-const searchKeyword = ref("");
+//标签的关键字搜索
+const searchTagKeyword = ref("");
 const filteredTags = computed(() => {
   //将找到的元素都赋给filteredTags
   return availableTags.value.filter((item) => {
@@ -385,7 +402,7 @@ const filteredTags = computed(() => {
     ); //判断当前选择了的标签里有没有和当前遍历到的可用标签一样的，如果有就返回ture
     const isMatched = item.tag_name
       .toLowerCase()
-      .includes(searchKeyword.value.trim().toLowerCase()); //判断当前遍历到的标签名称里是否包含搜索关键字，如果包含就返回ture
+      .includes(searchTagKeyword.value.trim().toLowerCase()); //判断当前遍历到的标签名称里是否包含搜索关键字，如果包含就返回ture
     const canShow = isManageMode.value || !isSelected; //管理模式默认为false，
     return isMatched && canShow;
   });
@@ -476,12 +493,13 @@ const handleDeleteTag = async (tag) => {
   }
 };
 
+//关闭新增题目的窗口后初始化
 const handleDialogClosed = () => {
   newTagName.value = "";
   selectedTags.value = [];
   question.value = "";
   answer.value = "";
-  searchKeyword.value = "";
+  searchTagKeyword.value = "";
   isManageMode.value = false;
   editingTagId.value = "";
 };
